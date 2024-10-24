@@ -12,7 +12,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Profile')),
       body: FutureBuilder<Employee?>(
-        future: ApiService('http://your-laravel-api-url.com').fetchEmployeeProfile(token!),
+        future: ApiService('https://payslip.ataanalytiqpvt.com').fetchEmployeeProfile(token!),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
