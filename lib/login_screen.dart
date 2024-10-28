@@ -1,31 +1,27 @@
 import 'package:flutter/material.dart';
-import 'otp_screen.dart'; // Correct import for OtpScreen
+import 'package:shared_preferences/shared_preferences.dart';
+import 'otp_screen.dart';
+import 'profile_screen.dart';
 import 'api_service.dart';
 
-class LoginScreen extends StatefulWidget {
-  @override
-  _LoginScreenState createState() => _LoginScreenState();
-}
+class LoginScreen extends StatelessWidget {
+  final ApiService apiService = ApiService();
+  final TextEditingController searchInputController = TextEditingController();
 
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _searchInputController = TextEditingController();
-  final ApiService _apiService = ApiService('https://payslip.ataanalytiqpvt.com');
+  LoginScreen({super.key});
 
-  void _sendOtp() async {
-    // Sending email/employee ID to the server to request OTP
-    final response = await _apiService.requestOtp(_searchInputController.text);
-
-    if (response != null && response['success'] == true) {
-      // Navigate to OTP screen if OTP is sent successfully
+  void requestOtp(BuildContext context) async {
+    final response = await apiService.requestOtp(searchInputController.text);
+    if (response != null && response['message'] == 'OTP sent to your email.') {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => OtpScreen(searchInput: _searchInputController.text),
+          builder: (context) => OtpScreen(searchInput: searchInputController.text),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send OTP')),
+        SnackBar(content: Text(response?['error'] ?? 'Failed to send OTP')),
       );
     }
   }
@@ -35,17 +31,16 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Login')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
-              controller: _searchInputController,
+              controller: searchInputController,
               decoration: InputDecoration(labelText: 'Email or Employee ID'),
             ),
-            SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _sendOtp,
-              child: Text('Send OTP'),
+              onPressed: () => requestOtp(context),
+              child: Text('Request OTP'),
             ),
           ],
         ),
