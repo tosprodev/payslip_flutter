@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'auth_provider.dart';
+import 'otp_screen.dart'; // Correct import for OtpScreen
 import 'api_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -9,23 +8,24 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final ApiService _apiService = ApiService('http://your-laravel-api-url.com');
+  final TextEditingController _searchInputController = TextEditingController();
+  final ApiService _apiService = ApiService('https://payslip.ataanalytiqpvt.com');
 
-  void _login() async {
-    // Replace this with actual login logic
-    final response = await _apiService.login(
-      _emailController.text,
-      _passwordController.text,
-    );
+  void _sendOtp() async {
+    // Sending email/employee ID to the server to request OTP
+    final response = await _apiService.requestOtp(_searchInputController.text);
 
-    if (response != null) {
-      Provider.of<AuthProvider>(context, listen: false).login(response.token);
-      Navigator.pushReplacementNamed(context, '/profile');
+    if (response != null && response['success'] == true) {
+      // Navigate to OTP screen if OTP is sent successfully
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OtpScreen(searchInput: _searchInputController.text),
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed')),
+        SnackBar(content: Text('Failed to send OTP')),
       );
     }
   }
@@ -39,18 +39,13 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           children: [
             TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
+              controller: _searchInputController,
+              decoration: InputDecoration(labelText: 'Email or Employee ID'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _login,
-              child: Text('Login'),
+              onPressed: _sendOtp,
+              child: Text('Send OTP'),
             ),
           ],
         ),
