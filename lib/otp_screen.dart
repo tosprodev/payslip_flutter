@@ -81,100 +81,121 @@ class _OtpScreenState extends State<OtpScreen> {
     }
   }
 
-  void _handlePaste(String value) {
-    if (value.length == 6) {
-      for (int i = 0; i < 6; i++) {
-        _otpControllers[i].text = value[i];
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Verify OTP')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // App Icon at the Top
-            Padding(
-              padding: const EdgeInsets.only(bottom: 40),
-              child: Column(
-                children: [
-                  Image.asset('assets/logo.png', height: 100), // Change the path to your app icon
-                  SizedBox(height: 20),
-                  Text(
-                    'Enter the OTP sent to your email',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-
-            // OTP Input Boxes
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(6, (index) {
-                return Container(
-                  width: 50, // Increased width
-                  height: 70, // Increased height
-                  child: TextField(
-                    controller: _otpControllers[index],
-                    onChanged: (value) {
-                      _onChanged(value, index);
-                    },
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.blue),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.blueAccent),
-                      ),
-                      counterText: '', // Remove character counter
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.lightBlue.shade100, Colors.pink.shade100],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // App Icon at the Top
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Column(
+                  children: [
+                    Image.asset('assets/logo.png', height: 100), // Change the path to your app icon
+                    SizedBox(height: 10),
+                    Text(
+                      'Verify OTP', // Added text below the logo
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    style: TextStyle(fontSize: 28, height: 1), // Increased font size for better visibility
-                    maxLength: 1,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly, // Ensure only digits are allowed
-                    ],
-                    showCursor: false, // Hide cursor to improve visual appeal
-                  ),
-                );
-              }),
-            ),
-
-            SizedBox(height: 20),
-
-            // Progress Indicator
-            if (_isLoading)
-              CircularProgressIndicator(), // Show progress indicator if loading
-            SizedBox(height: 20),
-
-            // Container to make the button wider
-            Container(
-              width: double.infinity, // Make the button fill the available width
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () => verifyOtp(context), // Disable button while loading
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15), // Vertical padding
-                  backgroundColor: Colors.blue, // Change to desired color
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20), // Rounded corners
-                  ),
-                ),
-                child: Text(
-                  'Verify OTP',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white), // Customize text style
+                    SizedBox(height: 10),
+                    Text(
+                      'Enter the OTP sent to your email',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+
+              // OTP Input Boxes
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(6, (index) {
+                  return Container(
+                    width: 50, // Increased width
+                    height: 70, // Increased height
+                    child: TextField(
+                      controller: _otpControllers[index],
+                      onChanged: (value) {
+                        _onChanged(value, index);
+                      },
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blue),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blueAccent),
+                        ),
+                        counterText: '', // Remove character counter
+                      ),
+                      style: TextStyle(fontSize: 28, height: 1), // Increased font size for better visibility
+                      maxLength: 1,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly, // Ensure only digits are allowed
+                      ],
+                      showCursor: true, // Show cursor to allow manual input
+                    ),
+                  );
+                }),
+              ),
+
+              SizedBox(height: 10),
+
+              // Progress Indicator
+              if (_isLoading)
+                CircularProgressIndicator(), // Show progress indicator if loading
+              SizedBox(height: 10),
+
+              // Container to make the button wider
+              Container(
+                width: 200, // Make the button fill the available width
+                child: Material(
+                  elevation: 5, // Add some elevation
+                  borderRadius: BorderRadius.circular(20), // Rounded corners
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.lightBlueAccent, Colors.blueAccent], // Gradient colors
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20), // Rounded corners
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20), // Rounded corners for InkWell
+                      onTap: _isLoading ? null : () => verifyOtp(context), // Disable button while loading
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10), // Vertical padding
+                        child: Center(
+                          child: Text(
+                            'Verify OTP',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white, // Customize text color
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -14,6 +14,8 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  late Animation<Offset> _logoSlideAnimation;
+  late Animation<Offset> _textSlideAnimation;
 
   @override
   void initState() {
@@ -25,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
     );
 
-    // Define the fade animation for both logo and app name
+    // Fade animation for both logo and text
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -33,14 +35,27 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    // Start the fade-in animation
+    // Slide animation for logo (from top to center)
+    _logoSlideAnimation = Tween<Offset>(begin: Offset(0, -1), end: Offset(0, 0)).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    // Slide animation for text (from bottom to center)
+    _textSlideAnimation = Tween<Offset>(begin: Offset(0, 1), end: Offset(0, 0)).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    // Start the animations
     _controller.forward().then((_) {
-      // Wait for the animation to finish, then fade out
+      // Wait for the animation to finish, then wait for a bit before navigating
       Timer(Duration(seconds: 1), () {
-        _controller.reverse().then((_) {
-          // After fading out, navigate to the next screen
-          _navigateToNextScreen();
-        });
+        _navigateToNextScreen(); // Directly navigate without animation
       });
     });
   }
@@ -72,33 +87,48 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo with fade animation
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: Image.asset(
-                'assets/icon/app_icon.png', // Replace with your icon path
-                width: 120,
-                height: 80,
-              ),
-            ),
-            SizedBox(height: 20),
-            // Text with fade animation
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: Text(
-                Constants.appName,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.lightBlue.shade100, Colors.pink.shade100],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo with slide and fade animation
+              SlideTransition(
+                position: _logoSlideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Image.asset(
+                    'assets/icon/app_icon.png', // Replace with your icon path
+                    width: 120,
+                    height: 80,
+                  ),
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: 20),
+              // Text with slide and fade animation
+              SlideTransition(
+                position: _textSlideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Text(
+                    Constants.appName,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent, // Make the text color contrast the gradient
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
