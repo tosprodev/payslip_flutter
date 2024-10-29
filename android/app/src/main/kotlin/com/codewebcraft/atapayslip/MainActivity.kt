@@ -1,4 +1,4 @@
-package com.example.payslip_flutter
+package com.codewebcraft.atapayslip
 
 import io.flutter.embedding.android.FlutterActivity
 

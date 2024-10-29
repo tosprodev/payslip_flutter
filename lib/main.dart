@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'login_screen.dart';
-import 'profile_screen.dart';
+import 'splash_screen.dart';
+import 'constants.dart';
 
 void main() {
   runApp(MyApp());
@@ -13,30 +12,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Payslip App',
+      title: Constants.appName,
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        fontFamily: 'GoogleSans',
       ),
-      home: FutureBuilder<String?>(
-        future: _getToken(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (snapshot.hasData && snapshot.data != null) {
-            return ProfileScreen(token: snapshot.data!);
-          }
-          return LoginScreen();
-        },
-      ),
+      home: SplashScreen(), // Set the splash screen as the initial screen
     );
-  }
-
-  Future<String?> _getToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
   }
 }

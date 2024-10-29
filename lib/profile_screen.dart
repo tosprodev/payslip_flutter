@@ -143,15 +143,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('Profile'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: _logout,
-            ),
-          ],
-        ),
         body: employee == null
             ? Center(child: CircularProgressIndicator())
             : Padding(
@@ -170,7 +161,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               buildSectionHeader("Profile Details"),
               buildProfileTable(),
               if (employee!.documents != null) ...[
-                Divider(height: 40, thickness: 1),
                 buildSectionHeader("Documents"),
                 buildDocumentsTable(),
               ],
@@ -199,7 +189,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
       border: TableBorder.all(color: Colors.grey.shade300),
       children: [
-        buildTableRow('ID', employee!.id.toString()),
         buildTableRow('Employee ID', employee!.employeeId),
         buildTableRow('Full Name', employee!.fullName),
         buildTableRow('Email', employee!.email),
@@ -213,7 +202,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         buildTableRow('Blood Group', employee!.bloodGroup),
         buildTableRow('Gross Salary', employee!.grossSalary),
         buildTableRow('PF Number', employee!.pf),
-        buildTableRow('UAN', employee!.uan),
         buildTableRow('Shift Type', employee!.shiftType),
         buildTableRow('Aadhar', employee!.aadhar),
         buildTableRow('Last Education', employee!.lastEducation),
@@ -250,17 +238,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         buildCell(Text(title, style: TextStyle(fontWeight: FontWeight.bold)), true),
         buildCell(
           documentUrl != null && documentUrl.isNotEmpty
-              ? TextButton(
+              ? ElevatedButton(
             onPressed: () {
               String completeUrl = '${Constants.baseUrl}/$documentUrl'; // Construct the complete URL
               _showWebViewPopup(completeUrl); // Open the WebView popup
             },
             child: Text(
               'View', // Show "View" button instead of document name
-              style: TextStyle(
-                color: Colors.blue,
-                decoration: TextDecoration.underline,
-              ),
+              style: TextStyle(color: Colors.white), // Text color for better visibility
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue, // Background color of the button
+              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0), // Button padding
             ),
           )
               : Text('Not Provided', style: TextStyle(color: Colors.grey)),
