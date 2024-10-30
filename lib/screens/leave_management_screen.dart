@@ -7,7 +7,7 @@ import '../pages/createleaverequest_page.dart';
 class LeaveManagementScreen extends StatelessWidget {
   final String token; // Pass the token when creating the screen
 
-  LeaveManagementScreen({required this.token});
+  const LeaveManagementScreen({super.key, required this.token});
 
   @override
   Widget build(BuildContext context) {

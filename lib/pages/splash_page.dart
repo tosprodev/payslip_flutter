@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward().then((_) {
       // Wait for the animation to finish, then wait for a bit before navigating
       Timer(Duration(seconds: 1), () {
-        _navigateToNextScreen(); // Directly navigate without animation
+        _navigateToNextScreen(); // Navigate after the delay
       });
     });
   }

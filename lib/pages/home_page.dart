@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../screens/profile_screen.dart';
 import '../screens/attendance_screen.dart';
 import '../screens/payslip_screen.dart';
@@ -27,6 +29,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadToken();
+    _requestStoragePermission();
   }
 
   Future<void> _loadToken() async {
@@ -365,6 +368,13 @@ class _HomePageState extends State<HomePage> {
       ),
     )
     );
+  }
+}
+
+Future<void> _requestStoragePermission() async {
+  final status = await Permission.storage.status;
+  if (!status.isGranted) {
+    await Permission.storage.request();
   }
 }
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import for date formatting
-import 'package:flutter/cupertino.dart';
-import 'dart:io'; // Import for file handling
+import 'package:html_editor_plus/html_editor.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../api_service.dart'; // Import your ApiService
 
 class CreateLeaveRequestScreen extends StatefulWidget {
   @override
@@ -12,21 +13,36 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-
+  String? _token;
   final _formKey = GlobalKey<FormState>();
-  List<String> leaveTypes = [
-    'Select Leave Type',
-    'Casual Leave',
-    'Medical Leave',
-    'Unpaid Leave'
-  ];
-  List<String> dayTypes = ['Full Day', 'Half Day'];
-  String leaveType = '';
-  String dayType = 'Full Day'; // Default value
   String reason = '';
+  int wordCount = 0;
+  bool _isLoading = false;
+
+  final Map<String, String> leaveTypeMapping = {
+    'Select Leave Type': '',
+    'Casual Leave': 'casual',
+    'Medical Leave': 'medical',
+    'Unpaid Leave': 'unpaid',
+  };
+
+  List<String> leaveTypes = [];
+  List<String> dayTypes = ['Full Day', 'Half Day'];
+
+  String leaveType = '';
+  String dayType = 'Full Day';
   DateTime leaveDateFrom = DateTime.now();
   DateTime leaveDateTo = DateTime.now();
-  bool _isLoading = false; // To track loading state
+
+  ApiService apiService = ApiService();
+  final HtmlEditorController _htmlEditorController = HtmlEditorController();
+
+  Future<void> _loadToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _token = prefs.getString('token');
+    });
+  }
 
   @override
   void initState() {
@@ -37,6 +53,8 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
     )..forward();
 
     _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
+    _loadToken();
+    leaveTypes = leaveTypeMapping.keys.toList();
   }
 
   @override
@@ -45,31 +63,52 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
     super.dispose();
   }
 
+  void _updateWordCount(String value) {
+    final words = value.trim().split(RegExp(r'\s+')).where((word) => word.isNotEmpty);
+    setState(() {
+      wordCount = words.length;
+    });
+  }
+
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true; // Start loading
-      });
-      _formKey.currentState!.save();
-
-      // Simulate a network call
-      await Future.delayed(Duration(seconds: 2));
-
-      // Here you would usually handle your API call
-      // Simulating success or error
-      bool success = true; // Change to false to simulate error
-
-      setState(() {
-        _isLoading = false; // Stop loading
-      });
-
-      // Show success or error message
+    if (wordCount < 15) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? 'Leave request submitted successfully!' : 'Failed to submit leave request.'),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
+        SnackBar(content: Text('Please enter at least 15 words')),
       );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    String token = _token ?? '';
+
+    Map<String, dynamic> requestData = {
+      'leave_type': leaveTypeMapping[leaveType] ?? '',
+      'day_type': dayType.toLowerCase().replaceAll(' ', '_'),
+      'reason': reason,
+      'leave_date_from': DateFormat('yyyy-MM-dd').format(leaveDateFrom),
+      'leave_date_to': DateFormat('yyyy-MM-dd').format(leaveDateTo),
+    };
+
+    final response = await apiService.submitLeaveRequest(token, requestData);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(response?['status'] == 'success'
+            ? 'Leave request submitted successfully!'
+            : response?['message'] ?? 'Error submitting request.'),
+        backgroundColor: response?['status'] == 'success' ? Colors.green : Colors.red,
+      ),
+    );
+
+    if (response?['status'] == 'success') {
+      Navigator.of(context).pop();
     }
   }
 
@@ -81,6 +120,11 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
 
   String formatDate(DateTime date) {
     return DateFormat('dd-MM-yyyy').format(date);
+  }
+
+  Future<void> _getEditorContent() async {
+    reason = await _htmlEditorController.getText() ?? '';
+    _updateWordCount(reason);
   }
 
   @override
@@ -144,21 +188,19 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                     },
                   ),
                   SizedBox(height: 20),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Reason',
-                      border: OutlineInputBorder(),
+                  HtmlEditor(
+                    controller: _htmlEditorController,
+                    htmlEditorOptions: HtmlEditorOptions(
+                      hint: 'Enter your reason here...',
                     ),
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Please enter reason';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      reason = value!;
-                    },
+                    callbacks: Callbacks(
+                      onInit: () {
+                        _htmlEditorController.setText(''); // Initialize the editor with empty content
+                      },
+                    ),
                   ),
+                  SizedBox(height: 10),
+                  Text('Word Count: $wordCount', style: TextStyle(fontSize: 16)),
                   SizedBox(height: 20),
                   TextFormField(
                     decoration: InputDecoration(
@@ -183,7 +225,7 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                     ),
                     readOnly: true,
                     controller: TextEditingController(
-                      text: formatDate(leaveDateFrom), // Format date
+                      text: formatDate(leaveDateFrom),
                     ),
                   ),
                   SizedBox(height: 20),
@@ -197,7 +239,7 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                           DateTime? pickedDate = await showDatePicker(
                             context: context,
                             initialDate: leaveDateTo,
-                            firstDate: DateTime.now(),
+                            firstDate: leaveDateFrom,
                             lastDate: DateTime(2100),
                           );
                           if (pickedDate != null && pickedDate != leaveDateTo) {
@@ -210,10 +252,9 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                     ),
                     readOnly: true,
                     controller: TextEditingController(
-                      text: formatDate(leaveDateTo), // Format date
+                      text: formatDate(leaveDateTo),
                     ),
                   ),
-                  // Show prescription upload option if Medical Leave is selected
                   if (leaveType == 'Medical Leave') ...[
                     SizedBox(height: 20),
                     Text('Upload Medical Prescription'),
@@ -226,9 +267,12 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                   ],
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _submitForm, // Disable button if loading
+                    onPressed: () {
+                      _getEditorContent(); // Update content before submission
+                      _submitForm();
+                    },
                     child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white) // Show loading indicator
+                        ? CircularProgressIndicator(color: Colors.white)
                         : Text('Submit Leave Request'),
                   ),
                 ],

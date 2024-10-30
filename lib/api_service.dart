@@ -191,8 +191,7 @@ class ApiService {
         },
         body: json.encode(requestData),
       );
-
-      // Parse the response body
+      print('Data : ${json.encode(requestData)}');
       final Map<String, dynamic> responseBody = json.decode(response.body);
 
       if (response.statusCode == 201) {
