@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'login_screen.dart';
+import 'login_page.dart';
 import 'home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'constants.dart';
+import '../constants.dart';
 
 class SplashScreen extends StatefulWidget {
   @override

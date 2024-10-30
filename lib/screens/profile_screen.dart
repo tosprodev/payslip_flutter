@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'login_screen.dart';
-import 'api_service.dart';
-import 'employee.dart';
-import 'constants.dart';
+import '../pages/login_page.dart';
+import '../api_service.dart';
+import '../models/employee.dart';
+import '../constants.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String token;
@@ -31,14 +31,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       employee = fetchedData != null ? Employee.fromJson(fetchedData['employee']) : null;
     });
-  }
-
-  Future<void> _logout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-    );
   }
 
   void _showSnackbar(String message) {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'splash_screen.dart';
+import 'pages/splash_page.dart';
 import 'constants.dart';
 
 void main() {

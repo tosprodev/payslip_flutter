@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'otp_screen.dart';
-import 'api_service.dart';
-import 'constants.dart';
+import 'otp_page.dart';
+import '../api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -148,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
+                            color: Colors.black,
                           ),
                         ),
                         SizedBox(height: 30),

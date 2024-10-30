@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login_screen.dart';
+import 'pages/login_page.dart';
 
 class AuthProvider with ChangeNotifier {
   String? _token;

@@ -1,12 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'profile_screen.dart';
-import 'attendance_screen.dart';
-import 'payslip_screen.dart';
-import 'leave_management_screen.dart';
-import 'login_screen.dart';
-import 'setting_screen.dart';
-import 'constants.dart';
+import '../screens/profile_screen.dart';
+import '../screens/attendance_screen.dart';
+import '../screens/payslip_screen.dart';
+import '../screens/leave_management_screen.dart';
+import '../api_service.dart';
+import 'login_page.dart';
+import 'setting_page.dart';
+import '../constants.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,9 +19,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   String? _token; // Variable to hold the token
-  String _appBarTitle = "Home"; // Variable to hold the AppBar title
+  String _appBarTitle = Constants.appName; // Variable to hold the AppBar title
   DateTime? _lastBackPressTime;
-  late List<Widget> _children;
+  late List<Widget> _children = [Center(child: CircularProgressIndicator())]; // Initialize with a placeholder
 
   @override
   void initState() {
@@ -35,21 +38,69 @@ class _HomePageState extends State<HomePage> {
         HomeScreen(), // Create a separate HomeScreen widget
         AttendanceScreen(),
         PayslipScreen(),
-        LeaveManagementScreen(),
+        LeaveManagementScreen(token: _token ?? ""),
         ProfileScreen(token: _token ?? ""), // Pass the token here
       ];
     });
   }
 
-  Future<void> _logout() async {
+  Future<void> _logout(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token'); // Clear the token from shared preferences
+    String? token = prefs.getString('token');
 
-    // Navigate to the LoginScreen
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginScreen()), // Replace with your LoginScreen widget
-          (Route<dynamic> route) => false, // Remove all previous routes
-    );
+    if (token != null) {
+      try {
+        // Call the logout method from ApiService
+        final logoutResponse = await ApiService.logout(token, Constants.baseUrl);
+
+        // Check if the logoutResponse is not null and contains the expected keys
+        if (logoutResponse != null) {
+          if (logoutResponse['status'] == 'success') {
+            await prefs.remove('token'); // Clear the token from shared preferences
+
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('You are successfully logged out'),
+                backgroundColor: Colors.green, // Set the background color to green
+              ),
+            );
+
+            // Navigate to the LoginScreen and clear previous routes
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+                  (Route<dynamic> route) => false,
+            );
+          } else {
+            // If the status is not 'success', show the error message
+            String message = logoutResponse['message'] ?? 'Logout failed. Please try again.'; // Log the error message for debugging
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message),
+                backgroundColor: Colors.red,),
+            );
+          }
+        } else {
+          // Handle the case where logoutResponse is null
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Logout response is null. Please try again.'),
+                backgroundColor: Colors.red),
+          );
+        }
+      } catch (e) {
+        // Handle exceptions (network issues, etc.)
+        print('Error during logout: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred during logout. Please check your network connection.'),
+              backgroundColor: Colors.red),
+        );
+      }
+    } else {
+      // If no token is found, navigate to login directly
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+            (Route<dynamic> route) => false,
+      );
+    }
   }
 
   Future<bool> _onWillPop() async {
@@ -59,16 +110,17 @@ class _HomePageState extends State<HomePage> {
 
     if (backButtonExit) {
       _lastBackPressTime = currentTime;
-      // Show a message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Press back again to exit'),
           duration: Duration(seconds: 2),
         ),
       );
-      return false; // Do not exit
+      return false; // Do not exit yet
     }
-    return true; // Exit the app
+
+    exit(0); // Completely exit the app
+    return true; // Required to satisfy the return type, even though it won’t be reached
   }
 
   void _showProfileMenu(BuildContext context) {
@@ -129,7 +181,7 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute(builder: (context) => SettingsScreen()), // Replace with your SettingsScreen widget
         );
       } else if (value == 'logout') {
-        _logout(); // Call logout function
+        _logout(context); // Call logout function
       }
     });
   }
@@ -251,7 +303,7 @@ class _HomePageState extends State<HomePage> {
               title: Text('Logout'),
               onTap: () {
                 Navigator.pop(context);
-                _logout(); // Call logout function
+                _logout(context); // Call logout function
               },
             ),
           ],
