@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 import '../api_service.dart';
 import '../models/employee.dart';
@@ -47,7 +48,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showWebViewPopup(String url) {
     double loadingProgress = 0.0;
     bool isLoading = true;
-
+    bool isDownloadableDocument(String url) {
+      return url.endsWith('.pdf') || url.endsWith('.doc') || url.endsWith('.docx') ||
+          url.endsWith('.ppt') || url.endsWith('.pptx') || url.endsWith('.xls') ||
+          url.endsWith('.xlsx') || url.endsWith('.txt');
+    }
+    if (isDownloadableDocument(url)) {
+      _showConfirmationDialog(url);
+      return;
+    }
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -130,42 +139,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _downloadFile(String url) async {
-    // Check for storage permission
-    final status = await Permission.storage.status;
+  void _showConfirmationDialog(String url) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Open Document'),
+          content: const Text('This document is downloadable. Would you like to open it in your web browser?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _launchURL(url);
+              },
+              child: const Text('Open'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-    if (status.isDenied) {
-      // If the permission is denied, request permission
-      final result = await Permission.storage.request();
-      if (result.isDenied) {
-        _showSnackbar("Storage permission is required to download files.");
-        return;
-      }
+  void _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      _showSnackbar("Could not launch $url");
     }
+  }
 
-    // If permission is granted, proceed with downloading the file
-    if (status.isGranted || status.isLimited) {
-      // Get the document directory
-      final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/${url.split('/').last}';
+  Future<void> _requestPermissionAndDownload(String url) async {
+    var status = await Permission.storage.status;
+    print("Current permission status: $status");
 
-      // Use HttpClient to download the file
-      HttpClient httpClient = HttpClient();
-      try {
-        final request = await httpClient.getUrl(Uri.parse(url));
-        final response = await request.close();
-        final bytes = await consolidateHttpClientResponseBytes(response);
-        final file = File(filePath);
-        await file.writeAsBytes(bytes);
-        _showSnackbar("Downloaded to: $filePath");
-      } catch (e) {
-        _showSnackbar("Download failed: $e");
-      } finally {
-        httpClient.close();
-      }
+    // Check for permission status and request if needed
+    if (status.isDenied) {
+      // Request permission
+      _showPermissionDialog(url);
+    } else if (status.isGranted) {
+      print("Storage permission already granted. Proceeding with download.");
+      await _downloadFile(url);
     } else {
       _showSnackbar("Storage permission is required to download files.");
     }
+  }
+
+  Future<void> _downloadFile(String url) async {
+    Directory? downloadsDir;
+
+    if (Platform.isAndroid) {
+      downloadsDir = Directory('/storage/emulated/0/Download');
+    } else {
+      downloadsDir = await getApplicationDocumentsDirectory();
+    }
+
+    final appFolder = Directory('${downloadsDir!.path}/iSmartDigital');
+    if (!await appFolder.exists()) {
+      await appFolder.create();
+    }
+
+    final filePath = '${appFolder.path}/${url.split('/').last}';
+    HttpClient httpClient = HttpClient();
+    try {
+      final request = await httpClient.getUrl(Uri.parse(url));
+      final response = await request.close();
+      final bytes = await consolidateHttpClientResponseBytes(response);
+      final file = File(filePath);
+      await file.writeAsBytes(bytes);
+      _showSnackbar("Downloaded to: $filePath");
+    } catch (e) {
+      _showSnackbar("Download failed: $e");
+    } finally {
+      httpClient.close();
+    }
+  }
+
+  void _showPermissionDialog(String url) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Permission Required'),
+          content: const Text('This app needs storage permission to download files.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                _requestPermissionAndDownload(url); // Proceed to request permission
+              },
+              child: const Text('Grant Permission'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Just close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -244,6 +323,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  TableRow buildClickableTableRow(String title, String? documentUrl) {
+    return TableRow(
+      children: [
+        TableCell(
+          verticalAlignment: TableCellVerticalAlignment.middle,
+          child: buildCell(
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            true,
+          ),
+        ),
+        TableCell(
+          verticalAlignment: TableCellVerticalAlignment.middle,
+          child: buildCell(
+            documentUrl != null && documentUrl.isNotEmpty
+                ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    String completeUrl = '${Constants.baseUrl}/$documentUrl';
+                    _showWebViewPopup(completeUrl);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
+                  child: const Text(
+                    'View',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    String completeUrl = '${Constants.baseUrl}/$documentUrl';
+                    _requestPermissionAndDownload(completeUrl);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
+                  child: const Text(
+                    'Download',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            )
+                : const Text(
+              "No Document",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget buildDocumentsTable() {
     return Table(
       columnWidths: const {
@@ -262,45 +404,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  TableRow buildClickableTableRow(String title, String? documentUrl) {
-    return TableRow(
-      children: [
-        buildCell(Text(title, style: const TextStyle(fontWeight: FontWeight.bold)), true),
-        buildCell(
-          documentUrl != null && documentUrl.isNotEmpty
-              ? Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  String completeUrl = '${Constants.baseUrl}/$documentUrl';
-                  print("Url : $completeUrl");
-                  _showWebViewPopup(completeUrl);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                ),
-                child: const Text('View'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  String completeUrl = '${Constants.baseUrl}/$documentUrl';
-                  _downloadFile(completeUrl);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                ),
-                child: const Text('Download'),
-              ),
-            ],
-          )
-              : const Text("No Document"),
-        ),
-      ],
-    );
-  }
 
   TableRow buildTableRow(String title, String value) {
     return TableRow(
