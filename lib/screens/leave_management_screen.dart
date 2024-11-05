@@ -16,9 +16,9 @@ class LeaveManagementScreen extends StatelessWidget {
         future: ApiService().fetchLeaveRequests(token),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError || snapshot.data == null) {
-            return Center(child: Text('Error fetching leave requests.'));
+            return const Center(child: Text('Error fetching leave requests.'));
           } else {
             final leaveRequests = snapshot.data!['data'] as List<dynamic>;
 
@@ -50,8 +50,8 @@ class LeaveManagementScreen extends StatelessWidget {
             MaterialPageRoute(builder: (context) => CreateLeaveRequestScreen()),
           );
         },
-        child: Icon(Icons.add),
-        backgroundColor: Colors.blue, // Customize as needed
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add), // Customize as needed
       ),
     );
   }
@@ -117,16 +117,16 @@ class _ExpandableMainCardState extends State<ExpandableMainCard> {
                       children: [
                         Text(
                           '# Request : ${capitalizeFirstLetter(widget.leaveRequest['leave_type'])} Leave For ${widget.totalDays} ${widget.totalDays == 1 ? 'Day' : 'Days'}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 0),
+                        const SizedBox(height: 0),
                         Text(
                           'Created on: ${DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.leaveRequest['created_at']))} (${widget.leaveRequest['day_type'] == 'full_day' ? 'Full Day' : 'Half Day'})',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 10,
                           ),

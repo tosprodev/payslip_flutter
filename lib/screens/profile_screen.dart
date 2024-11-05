@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import '../pages/login_page.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../api_service.dart';
 import '../models/employee.dart';
 import '../constants.dart';
@@ -37,14 +39,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
   void _showWebViewPopup(String url) {
-    double loadingProgress = 0.0; // Initialize loading progress
-    bool isLoading = true; // Initialize loading state
+    double loadingProgress = 0.0;
+    bool isLoading = true;
 
     showDialog(
       context: context,
@@ -52,62 +54,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: Text('Document'),
-              content: Container(
+              title: const Text('Document'),
+              content: SizedBox(
                 width: double.maxFinite,
                 height: 400,
                 child: Stack(
                   children: [
                     InAppWebView(
                       initialUrlRequest: URLRequest(
-                        url: WebUri(url), // Keep using WebUri for the initial URL
+                        url: WebUri(url),
                       ),
-                      onWebViewCreated: (InAppWebViewController controller) {
-                        // Additional configuration can go here
-                      },
+                      onWebViewCreated: (InAppWebViewController controller) {},
                       onLoadStart: (InAppWebViewController controller, Uri? url) {
                         setState(() {
-                          isLoading = true; // Start loading
+                          isLoading = true;
                         });
                       },
                       onLoadStop: (InAppWebViewController controller, Uri? url) async {
                         setState(() {
-                          isLoading = false; // Stop loading
+                          isLoading = false;
                         });
                       },
                       onProgressChanged: (InAppWebViewController controller, int progress) {
                         setState(() {
-                          loadingProgress = progress / 100.0; // Update loading progress (0.0 to 1.0)
+                          loadingProgress = progress / 100.0;
                         });
                       },
                       onLoadError: (InAppWebViewController controller, Uri? url, int code, String message) {
                         setState(() {
-                          isLoading = false; // Stop loading
+                          isLoading = false;
                         });
                         _showSnackbar("Failed to load the document: $message");
                       },
                       onLoadHttpError: (InAppWebViewController controller, Uri? url, int statusCode, String description) {
                         setState(() {
-                          isLoading = false; // Stop loading
+                          isLoading = false;
                         });
                         _showSnackbar("HTTP Error: $statusCode $description");
                       },
                       initialOptions: InAppWebViewGroupOptions(
                         crossPlatform: InAppWebViewOptions(
-                          mediaPlaybackRequiresUserGesture: false, // Allows media to autoplay
+                          mediaPlaybackRequiresUserGesture: false,
                         ),
                       ),
                     ),
-                    if (isLoading) // Show loader if loading
+                    if (isLoading)
                       Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 10),
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 10),
                             Text(
-                              "${(loadingProgress * 100).toStringAsFixed(0)}%", // Show loading percentage
-                              style: TextStyle(fontSize: 16),
+                              "${(loadingProgress * 100).toStringAsFixed(0)}%",
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
@@ -118,9 +118,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context).pop();
                   },
-                  child: Text('Close'),
+                  child: const Text('Close'),
                 ),
               ],
             );
@@ -130,13 +130,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _downloadFile(String url) async {
+    // Check for storage permission
+    final status = await Permission.storage.status;
+
+    if (status.isDenied) {
+      // If the permission is denied, request permission
+      final result = await Permission.storage.request();
+      if (result.isDenied) {
+        _showSnackbar("Storage permission is required to download files.");
+        return;
+      }
+    }
+
+    // If permission is granted, proceed with downloading the file
+    if (status.isGranted || status.isLimited) {
+      // Get the document directory
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/${url.split('/').last}';
+
+      // Use HttpClient to download the file
+      HttpClient httpClient = HttpClient();
+      try {
+        final request = await httpClient.getUrl(Uri.parse(url));
+        final response = await request.close();
+        final bytes = await consolidateHttpClientResponseBytes(response);
+        final file = File(filePath);
+        await file.writeAsBytes(bytes);
+        _showSnackbar("Downloaded to: $filePath");
+      } catch (e) {
+        _showSnackbar("Download failed: $e");
+      } finally {
+        httpClient.close();
+      }
+    } else {
+      _showSnackbar("Storage permission is required to download files.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
         body: employee == null
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : Padding(
           padding: const EdgeInsets.all(16.0),
           child: ListView(
@@ -146,10 +184,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   radius: 80,
                   backgroundImage: employee!.photo != null
                       ? NetworkImage('${Constants.baseUrl}/${employee!.photo}')
-                      : AssetImage('assets/default_profile.png') as ImageProvider,
+                      : const AssetImage('assets/default_profile.png') as ImageProvider,
                 ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               buildSectionHeader("Profile Details"),
               buildProfileTable(),
               if (employee!.documents != null) ...[
@@ -175,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget buildProfileTable() {
     return Table(
-      columnWidths: {
+      columnWidths: const {
         0: FlexColumnWidth(4),
         1: FlexColumnWidth(6),
       },
@@ -208,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget buildDocumentsTable() {
     return Table(
-      columnWidths: {
+      columnWidths: const {
         0: FlexColumnWidth(4),
         1: FlexColumnWidth(6),
       },
@@ -227,25 +265,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
   TableRow buildClickableTableRow(String title, String? documentUrl) {
     return TableRow(
       children: [
-        buildCell(Text(title, style: TextStyle(fontWeight: FontWeight.bold)), true),
+        buildCell(Text(title, style: const TextStyle(fontWeight: FontWeight.bold)), true),
         buildCell(
           documentUrl != null && documentUrl.isNotEmpty
-              ? ElevatedButton(
-            onPressed: () {
-              String completeUrl = '${Constants.baseUrl}/$documentUrl'; // Construct the complete URL
-              _showWebViewPopup(completeUrl); // Open the WebView popup
-            },
-            child: Text(
-              'View', // Show "View" button instead of document name
-              style: TextStyle(color: Colors.white), // Text color for better visibility
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue, // Background color of the button
-              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0), // Button padding
-            ),
+              ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  String completeUrl = '${Constants.baseUrl}/$documentUrl';
+                  print("Url : $completeUrl");
+                  _showWebViewPopup(completeUrl);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                ),
+                child: const Text('View'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  String completeUrl = '${Constants.baseUrl}/$documentUrl';
+                  _downloadFile(completeUrl);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                ),
+                child: const Text('Download'),
+              ),
+            ],
           )
-              : Text('Not Provided', style: TextStyle(color: Colors.grey)),
-          false,
+              : const Text("No Document"),
         ),
       ],
     );
@@ -254,19 +305,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   TableRow buildTableRow(String title, String value) {
     return TableRow(
       children: [
-        buildCell(Text(title, style: TextStyle(fontWeight: FontWeight.bold)), true),
-        buildCell(Text(value), false),
+        buildCell(Text(title, style: const TextStyle(fontWeight: FontWeight.bold)), true),
+        buildCell(Text(value)),
       ],
     );
   }
 
-  Widget buildCell(Widget child, bool isHeader) {
+  Widget buildCell(Widget child, [bool isHeader = false]) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: isHeader ? BoxDecoration(color: Colors.grey.shade200) : null,
+      child: isHeader
+          ? Container(
+        color: Colors.grey.shade200,
         child: child,
-      ),
+      )
+          : child,
     );
   }
 }

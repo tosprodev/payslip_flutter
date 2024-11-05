@@ -4,8 +4,6 @@ import 'constants.dart';
 
 class ApiService {
   final String baseUrl = Constants.baseUrl;
-
-  // Request OTP based on email or employee ID
   Future<Map<String, dynamic>?> requestOtp(String searchInput) async {
     try {
       final response = await http.post(
@@ -17,32 +15,28 @@ class ApiService {
           'search_input': searchInput,
         }),
       );
-
-      // Parse the response body
       final Map<String, dynamic> responseBody = json.decode(response.body);
-
-      // Check if the response indicates success
       if (responseBody.containsKey('success')) {
         return {
           'status': 'success',
-          'message': responseBody['success'], // Get the success message
+          'message': responseBody['success'],
         };
       } else if (responseBody.containsKey('error')) {
         return {
           'status': 'error',
-          'message': responseBody['error'], // Get the error message if it exists
+          'message': responseBody['error'],
         };
       } else {
         return {
           'status': 'error',
-          'message': 'An unknown error occurred.', // Handle unexpected cases
+          'message': 'An unknown error occurred.',
         };
       }
     } catch (e) {
       print('Exception: $e');
       return {
         'status': 'error',
-        'message': 'Failed to send OTP. Please try again.', // Handle network errors
+        'message': 'Failed to send OTP. Please try again.',
       };
     }
   }
@@ -60,32 +54,28 @@ class ApiService {
           'search_input': searchInput,
         }),
       );
-
-      // Parse the response body
       final Map<String, dynamic> responseBody = json.decode(response.body);
-
-      // Check if the response indicates success
       if (responseBody.containsKey('success')) {
         return {
           'status': 'success',
-          'token': responseBody['token'], // Get the token if success
+          'token': responseBody['token'],
         };
       } else if (responseBody.containsKey('error')) {
         return {
           'status': 'error',
-          'message': responseBody['error'], // Get the error message if it exists
+          'message': responseBody['error'],
         };
       } else {
         return {
           'status': 'error',
-          'message': 'An unknown error occurred.', // Handle unexpected cases
+          'message': 'An unknown error occurred.',
         };
       }
     } catch (e) {
       print('Exception: $e');
       return {
         'status': 'error',
-        'message': 'Failed to verify OTP. Please try again.', // Handle network errors
+        'message': 'Failed to verify OTP. Please try again.',
       };
     }
   }
@@ -99,7 +89,6 @@ class ApiService {
         'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
@@ -117,31 +106,26 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseBody = json.decode(response.body);
-
-        // Check for expected success key in the response
         if (responseBody.containsKey('success')) {
           return {
             'status': 'success',
-            'message': responseBody['success'], // Get the success message
+            'message': responseBody['success'],
           };
         } else {
           return {
             'status': 'error',
-            'message': responseBody['error'] ?? 'An unknown error occurred.', // Better error handling
+            'message': responseBody['error'] ?? 'An unknown error occurred.',
           };
         }
       } else {
-        // Handle non-200 responses and provide error detail if available
         return {
           'status': 'error',
           'message': response.body.isNotEmpty ? json.decode(response.body)['error'] : 'Failed to log out. Please try again.',
         };
       }
     } catch (e) {
-      print('Exception during logout: $e');
       return {
         'status': 'error',
         'message': 'Failed to log out due to network error. Please try again.',
@@ -159,7 +143,6 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
-
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
@@ -171,7 +154,6 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Exception during fetchLeaveRequests: $e');
       return {
         'status': 'error',
         'message': 'Failed to fetch leave requests due to network error. Please try again.',
@@ -191,7 +173,6 @@ class ApiService {
         },
         body: json.encode(requestData),
       );
-      print('Data : ${json.encode(requestData)}');
       final Map<String, dynamic> responseBody = json.decode(response.body);
 
       if (response.statusCode == 201) {

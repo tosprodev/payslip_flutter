@@ -1,8 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Keep this for FilteringTextInputFormatter
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api_service.dart';
-import 'home_page.dart'; // Import your homepage here
+import 'home_page.dart';
 
 class OtpScreen extends StatefulWidget {
   final String searchInput;
@@ -17,7 +19,7 @@ class _OtpScreenState extends State<OtpScreen> {
   final List<TextEditingController> _otpControllers =
   List.generate(6, (index) => TextEditingController());
   final ApiService apiService = ApiService();
-  bool _isLoading = false; // Variable to manage loading state
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -28,32 +30,33 @@ class _OtpScreenState extends State<OtpScreen> {
     String otp = _otpControllers.map((controller) => controller.text).join();
 
     setState(() {
-      _isLoading = true; // Start loading
+      _isLoading = true;
     });
 
     final response = await apiService.verifyOtp(otp, widget.searchInput);
 
     setState(() {
-      _isLoading = false; // Stop loading
+      _isLoading = false;
     });
 
-    if (response != null) {
-      if (response['status'] == 'success' && response['token'] != null) {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', response['token']); // Save token
-
-        // Navigate to the homepage after successful OTP verification
+    if (response != null && response['status'] == 'success' && response['token'] != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String token = response['token'];
+      await prefs.setString('token', token);
+      final profile = await apiService.fetchEmployeeProfile(token);
+      if (profile != null) {
+        await prefs.setString('employee', json.encode(profile));
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePage(), // Replace with your homepage widget
+            builder: (context) => HomePage(),
           ),
         );
-      } else if (response['status'] == 'error') {
+      } else {
+        // Handle profile fetch failure
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message']),
-            duration: Duration(seconds: 3),
+          const SnackBar(
+            content: Text('Failed to fetch profile. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -61,8 +64,8 @@ class _OtpScreenState extends State<OtpScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to verify OTP. Please try again.'),
-          duration: Duration(seconds: 3),
+          content: Text(response?['message'] ?? 'Failed to verify OTP. Please try again.'),
+          duration: const Duration(seconds: 3),
           backgroundColor: Colors.red,
         ),
       );
@@ -71,12 +74,10 @@ class _OtpScreenState extends State<OtpScreen> {
 
   void _onChanged(String value, int index) {
     if (value.length == 1) {
-      // Move to the next input field
       if (index < 5) {
         FocusScope.of(context).nextFocus();
       }
     } else if (value.isEmpty && index > 0) {
-      // Move back to the previous input field
       FocusScope.of(context).previousFocus();
     }
   }
@@ -97,33 +98,30 @@ class _OtpScreenState extends State<OtpScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App Icon at the Top
               Padding(
                 padding: const EdgeInsets.only(bottom: 20),
                 child: Column(
                   children: [
-                    Image.asset('assets/logo.png', height: 100), // Change the path to your app icon
-                    SizedBox(height: 10),
-                    Text(
-                      'Verify OTP', // Added text below the logo
+                    Image.asset('assets/logo.png', height: 100),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Verify OTP',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 10),
-                    Text(
+                    const SizedBox(height: 10),
+                    const Text(
                       'Enter the OTP sent to your email',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
-
-              // OTP Input Boxes
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(6, (index) {
                   return Container(
-                    width: 50, // Increased width
-                    height: 70, // Increased height
+                    width: 50,
+                    height: 70,
                     child: TextField(
                       controller: _otpControllers[index],
                       onChanged: (value) {
@@ -131,7 +129,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       },
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.blue),
@@ -139,53 +137,48 @@ class _OtpScreenState extends State<OtpScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.blueAccent),
                         ),
-                        counterText: '', // Remove character counter
+                        counterText: '',
                       ),
-                      style: TextStyle(fontSize: 28, height: 1), // Increased font size for better visibility
+                      style: const TextStyle(fontSize: 28, height: 1),
                       maxLength: 1,
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly, // Ensure only digits are allowed
+                        FilteringTextInputFormatter.digitsOnly,
                       ],
-                      showCursor: true, // Show cursor to allow manual input
+                      showCursor: true,
                     ),
                   );
                 }),
               ),
-
-              SizedBox(height: 10),
-
-              // Progress Indicator
+              const SizedBox(height: 10),
               if (_isLoading)
-                CircularProgressIndicator(), // Show progress indicator if loading
-              SizedBox(height: 10),
-
-              // Container to make the button wider
-              Container(
-                width: 200, // Make the button fill the available width
+                const CircularProgressIndicator(),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: 200,
                 child: Material(
-                  elevation: 5, // Add some elevation
-                  borderRadius: BorderRadius.circular(20), // Rounded corners
+                  elevation: 5,
+                  borderRadius: BorderRadius.circular(20),
                   child: Ink(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.lightBlueAccent, Colors.blueAccent], // Gradient colors
+                      gradient: const LinearGradient(
+                        colors: [Colors.lightBlueAccent, Colors.blueAccent],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
-                      borderRadius: BorderRadius.circular(20), // Rounded corners
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(20), // Rounded corners for InkWell
-                      onTap: _isLoading ? null : () => verifyOtp(context), // Disable button while loading
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 10), // Vertical padding
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: _isLoading ? null : () => verifyOtp(context),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
                         child: Center(
                           child: Text(
                             'Verify OTP',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white, // Customize text color
+                              color: Colors.white,
                             ),
                           ),
                         ),

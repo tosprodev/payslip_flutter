@@ -13,7 +13,7 @@ class Employee {
   final String ifscCode;
   final String doj;
   final String dob;
-  final String bloodGroup; // Add this line
+  final String bloodGroup;
   final String grossSalary;
   final String pf;
   final String? esi;
@@ -31,7 +31,7 @@ class Employee {
   final int completionYear;
   final String address;
   final String emergencyContact;
-  final Document? documents; // Add this line
+  final Document? documents;
 
   Employee({
     required this.id,
@@ -47,7 +47,7 @@ class Employee {
     required this.ifscCode,
     required this.doj,
     required this.dob,
-    required this.bloodGroup, // Add this line
+    required this.bloodGroup,
     required this.grossSalary,
     required this.pf,
     this.esi,
@@ -65,7 +65,7 @@ class Employee {
     required this.completionYear,
     required this.address,
     required this.emergencyContact,
-    this.documents, // Add this line
+    this.documents,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {

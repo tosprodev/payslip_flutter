@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'GoogleSans',
       ),
-      home: SplashScreen(), // Set the splash screen as the initial screen
+      home: SplashScreen(),
     );
   }
 }
