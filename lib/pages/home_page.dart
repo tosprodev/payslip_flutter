@@ -15,6 +15,8 @@ import 'setting_page.dart';
 import '../constants.dart';
 
 class HomePage extends StatefulWidget {
+  final int initialIndex;
+  HomePage({Key? key, this.initialIndex = 0}) : super(key: key);
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -34,6 +36,9 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _loadToken();
     _requestStoragePermission();
+    setState(() {
+      _currentIndex = widget.initialIndex;
+    });
   }
 
   Future<void> _loadToken() async {

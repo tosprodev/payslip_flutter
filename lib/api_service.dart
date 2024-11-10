@@ -1,9 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+
 import 'constants.dart';
 
 class ApiService {
   final String baseUrl = Constants.baseUrl;
+  File? prescriptionImage;
+
   Future<Map<String, dynamic>?> requestOtp(String searchInput) async {
     try {
       final response = await http.post(
@@ -163,37 +168,52 @@ class ApiService {
 
   // Submit Leave Request
   Future<Map<String, dynamic>?> submitLeaveRequest(
-      String token, Map<String, dynamic> requestData) async {
+      String token, Map<String, dynamic> requestData, File? prescriptionImage) async {
     try {
-      final response = await http.post(
+      var request = http.MultipartRequest(
+        'POST',
         Uri.parse('$baseUrl/api/employee/leave-requests/store'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(requestData),
       );
-      final Map<String, dynamic> responseBody = json.decode(response.body);
+      request.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+      request.fields['leave_type'] = requestData['leave_type'];
+      request.fields['day_type'] = requestData['day_type'];
+      request.fields['reason'] = requestData['reason'];
+      request.fields['leave_date_from'] = requestData['leave_date_from'];
+      request.fields['leave_date_to'] = requestData['leave_date_to'];
+      if (prescriptionImage != null) {
+        var prescriptionImageFile = await http.MultipartFile.fromPath(
+          'medical_prescription',
+          prescriptionImage.path,
+          contentType: MediaType('application', 'octet-stream'),
+        );
+        request.files.add(prescriptionImageFile);
+      }
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final responseJson = json.decode(responseBody);
 
       if (response.statusCode == 201) {
         return {
           'status': 'success',
-          'message': responseBody['message'],
-          'leave_request': responseBody['leave_request'],
+          'message': responseJson['message'],
+          'leave_request': responseJson['leave_request'],
         };
       } else {
         return {
           'status': 'error',
-          'message': responseBody['error'] ?? 'Failed to submit leave request.',
+          'message': responseJson['error'] ?? 'Failed to submit leave request.',
         };
       }
     } catch (e) {
-      print('Exception during leave request submission: $e');
       return {
         'status': 'error',
         'message': 'Failed to submit leave request due to network error.',
       };
     }
   }
+
 
 }

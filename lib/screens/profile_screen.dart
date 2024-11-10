@@ -9,6 +9,8 @@ import 'dart:io';
 import '../api_service.dart';
 import '../models/employee.dart';
 import '../constants.dart';
+import 'package:open_file/open_file.dart';
+import 'package:art_sweetalert/art_sweetalert.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String token;
@@ -37,14 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
 
   void _showWebViewPopup(String url) {
     double loadingProgress = 0.0;
@@ -55,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           url.endsWith('.xlsx') || url.endsWith('.txt');
     }
     if (isDownloadableDocument(url)) {
-      _showConfirmationDialog(url);
+      _showConfirmationDialog(context, url);
       return;
     }
     showDialog(
@@ -94,13 +88,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         setState(() {
                           isLoading = false;
                         });
-                        _showSnackbar("Failed to load the document: $message");
+                        _showErrorDialog(context, "Failed to load the document: $message");
                       },
                       onLoadHttpError: (InAppWebViewController controller, Uri? url, int statusCode, String description) {
                         setState(() {
                           isLoading = false;
                         });
-                        _showSnackbar("HTTP Error: $statusCode $description");
+                        _showErrorDialog(context, "HTTP Error: $statusCode $description");
                       },
                       initialOptions: InAppWebViewGroupOptions(
                         crossPlatform: InAppWebViewOptions(
@@ -140,30 +134,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showConfirmationDialog(String url) {
-    showDialog(
+  void _showConfirmationDialog(BuildContext context, String url) {
+    ArtSweetAlert.show(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Open Document'),
-          content: const Text('This document is downloadable. Would you like to open it in your web browser?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _launchURL(url);
-              },
-              child: const Text('Open'),
-            ),
-          ],
-        );
-      },
+      artDialogArgs: ArtDialogArgs(
+        title: 'Open Document',
+        text: 'This document is downloadable. Would you like to open it in your web browser?',
+        type: ArtSweetAlertType.info,
+        showCancelBtn: true,
+        confirmButtonText: 'Open',
+        cancelButtonText: 'Cancel',
+        onConfirm: () {
+          Navigator.of(context).pop();
+          _launchURL(url);
+        },
+        onCancel: () {
+          Navigator.of(context).pop();
+        },
+      ),
     );
   }
 
@@ -171,33 +159,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      _showSnackbar("Could not launch $url");
+      _showErrorDialog(context, "Could not launch $url");
     }
   }
 
   Future<void> _requestPermissionAndDownload(String url) async {
-    PermissionStatus status = await Permission.storage.status;
+    PermissionStatus status;
 
-    if (status.isDenied || status.isRestricted || status.isLimited) {
-      // Request permission if not granted
-      status = await Permission.storage.request();
-    }
-
-    // Proceed if permission is granted
-    if (status.isGranted) {
-      print("Storage permission granted. Proceeding with download.");
-      await _downloadFile(url);
-    } else {
-      // Show a snackbar if permission is permanently denied
-      if (status.isPermanentlyDenied) {
-        openAppSettings();
-        _showSnackbar("Please enable storage permission in settings to download files.");
+    if (Platform.isAndroid) {
+      final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+      final AndroidDeviceInfo androidInfo = await deviceInfoPlugin.androidInfo;
+      if (androidInfo.version.sdkInt >= 33) {
+        status = await Permission.manageExternalStorage.status;
+        if (status.isDenied || status.isRestricted || status.isLimited) {
+          status = await Permission.manageExternalStorage.request();
+        }
       } else {
-        _showSnackbar("Storage permission is required to download files.");
+        status = await Permission.storage.status;
+        if (status.isDenied || status.isRestricted || status.isLimited) {
+          status = await Permission.storage.request();
+        }
+      }
+    } else {
+      status = await Permission.storage.status;
+      if (status.isDenied || status.isRestricted || status.isLimited) {
+        status = await Permission.storage.request();
       }
     }
+    if (status.isGranted) {
+      await _downloadFile(url);
+    } else if (status.isPermanentlyDenied) {
+      openAppSettings();
+      _showErrorDialog(context, "Please enable storage permission in settings to download files.");
+    } else {
+      _showErrorDialog(context, "Storage permission is required to download files.");
+    }
   }
-
 
   Future<void> _downloadFile(String url) async {
     Directory? downloadsDir;
@@ -208,7 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       downloadsDir = await getApplicationDocumentsDirectory();
     }
 
-    final appFolder = Directory('${downloadsDir!.path}/iSmartDigital');
+    final appFolder = Directory('${downloadsDir!.path}/${Constants.appName}');
     if (!await appFolder.exists()) {
       await appFolder.create();
     }
@@ -221,38 +218,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final bytes = await consolidateHttpClientResponseBytes(response);
       final file = File(filePath);
       await file.writeAsBytes(bytes);
-      _showSnackbar("Downloaded to: $filePath");
+      _showOpenFileDialog(context, filePath);
     } catch (e) {
-      _showSnackbar("Download failed: $e");
+      _showErrorDialog(context, "Download failed: $e");
     } finally {
       httpClient.close();
     }
   }
 
-  void _showPermissionDialog(String url) {
-    showDialog(
+  void _showOpenFileDialog(BuildContext context, String filePath) {
+    ArtSweetAlert.show(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Permission Required'),
-          content: const Text('This app needs storage permission to download files.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                _requestPermissionAndDownload(url); // Proceed to request permission
-              },
-              child: const Text('Grant Permission'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Just close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
+      artDialogArgs: ArtDialogArgs(
+        title: "Download Complete",
+        text: "Would you like to open the downloaded file?",
+        type: ArtSweetAlertType.success,
+        showCancelBtn: true,
+        confirmButtonText: "Open",
+        cancelButtonText: "Cancel",
+        onConfirm: () {
+          OpenFile.open(filePath);
+          Navigator.of(context).pop();
+        },
+        onCancel: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String errorMessage) {
+    ArtSweetAlert.show(
+      context: context,
+      artDialogArgs: ArtDialogArgs(
+        title: "Error",
+        text: errorMessage,
+        type: ArtSweetAlertType.danger,
+        confirmButtonText: "OK",
+        onConfirm: () {
+          Navigator.of(context).pop();
+        },
+      ),
     );
   }
 

@@ -5,7 +5,7 @@ import 'package:flutter_html/flutter_html.dart';
 import '../pages/createleaverequest_page.dart';
 
 class LeaveManagementScreen extends StatelessWidget {
-  final String token; // Pass the token when creating the screen
+  final String token;
 
   const LeaveManagementScreen({super.key, required this.token});
 
@@ -26,8 +26,6 @@ class LeaveManagementScreen extends StatelessWidget {
               itemCount: leaveRequests.length,
               itemBuilder: (context, index) {
                 final leaveRequest = leaveRequests[index];
-
-                // Calculate total leave days
                 DateTime leaveFrom = DateTime.parse(leaveRequest['leave_date_from']);
                 DateTime leaveTo = DateTime.parse(leaveRequest['leave_date_to']);
                 int totalDays = leaveTo.difference(leaveFrom).inDays + 1;
@@ -41,17 +39,79 @@ class LeaveManagementScreen extends StatelessWidget {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Handle the creation of a new leave request here
-          // For example, navigate to a new screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CreateLeaveRequestScreen()),
-          );
-        },
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add), // Customize as needed
+      floatingActionButton: AnimatedButton(),
+    );
+  }
+}
+
+class AnimatedButton extends StatefulWidget {
+  @override
+  _AnimatedButtonState createState() => _AnimatedButtonState();
+}
+
+class _AnimatedButtonState extends State<AnimatedButton> {
+  double _scale = 1.0;
+  Color _shadowColor = Colors.black.withOpacity(0.2);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        setState(() {
+          _scale = 0.9;
+          _shadowColor = Colors.black.withOpacity(0.4);
+        });
+      },
+      onTapUp: (_) {
+        setState(() {
+          _scale = 1.0;
+          _shadowColor = Colors.black.withOpacity(0.2);
+        });
+      },
+      onTapCancel: () {
+        setState(() {
+          _scale = 1.0;
+          _shadowColor = Colors.black.withOpacity(0.2);
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.lightBlue[200]!,
+              Colors.pink[200]!,
+            ],
+            begin: Alignment.bottomRight,
+            end: Alignment.topLeft,
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: _shadowColor,
+              blurRadius: 10.0,
+              spreadRadius: 2.0,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        transform: Matrix4.identity()..scale(_scale),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CreateLeaveRequestScreen()),
+            );
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.hardEdge,
+          child: const Icon(
+            Icons.add,
+            color: Colors.black,
+          ),
+        ),
       ),
     );
   }
@@ -74,7 +134,7 @@ class _ExpandableMainCardState extends State<ExpandableMainCard> {
   Widget build(BuildContext context) {
     return Card(
       color: widget.leaveRequest['status'] == 'approved' ? Colors.green[100] : Colors.red[100],
-      margin: EdgeInsets.all(8.0),
+      margin: const EdgeInsets.all(8.0),
       elevation: 4.0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -90,7 +150,7 @@ class _ExpandableMainCardState extends State<ExpandableMainCard> {
             // Card Header
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(12.0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -144,13 +204,13 @@ class _ExpandableMainCardState extends State<ExpandableMainCard> {
             ),
             // Expanded content
             AnimatedSize(
-              duration: Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 300),
               child: Column(
                 children: [
                   if (_isExpanded) ...[
                     AnimatedOpacity(
                       opacity: _isExpanded ? 1.0 : 0.0,
-                      duration: Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 300),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
@@ -161,7 +221,7 @@ class _ExpandableMainCardState extends State<ExpandableMainCard> {
                               totalDays: widget.totalDays,
                             ),
                             StatusCard(leaveRequest: widget.leaveRequest),
-                            ThingCard(),
+                            const ThingCard(),
                           ],
                         ),
                       ),
@@ -181,7 +241,7 @@ class LeaveDetailsCard extends StatelessWidget {
   final Map<String, dynamic> leaveRequest;
   final int totalDays;
 
-  LeaveDetailsCard({required this.leaveRequest, required this.totalDays});
+  const LeaveDetailsCard({required this.leaveRequest, required this.totalDays});
 
   @override
   Widget build(BuildContext context) {
@@ -190,13 +250,13 @@ class LeaveDetailsCard extends StatelessWidget {
 
     return Card(
       color: Colors.white70,
-      margin: EdgeInsets.only(bottom: 8.0),
+      margin: const EdgeInsets.only(bottom: 8.0),
       child: Column(
         children: [
           // Card Header
           Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12.0),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -206,9 +266,9 @@ class LeaveDetailsCard extends StatelessWidget {
                 begin: Alignment.bottomRight,
                 end: Alignment.topLeft,
               ),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             ),
-            child: Text(
+            child: const Text(
               'Leave Details',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -220,9 +280,9 @@ class LeaveDetailsCard extends StatelessWidget {
           // Table for dates
           Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12.0),
             child: Table(
-              border: TableBorder(
+              border: const TableBorder(
                 horizontalInside: BorderSide(color: Colors.black, width: 1.0),
                 verticalInside: BorderSide(color: Colors.black, width: 1.0),
                 top: BorderSide(color: Colors.black, width: 1.0),
@@ -230,13 +290,13 @@ class LeaveDetailsCard extends StatelessWidget {
                 left: BorderSide(color: Colors.black, width: 1.0),
                 right: BorderSide(color: Colors.black, width: 1.0),
               ),
-              defaultColumnWidth: IntrinsicColumnWidth(),
+              defaultColumnWidth: const IntrinsicColumnWidth(),
               children: [
                 // Row for 'From'
                 TableRow(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
                       child: Text(
                         'Leave Type:',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
@@ -246,15 +306,15 @@ class LeaveDetailsCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         leaveRequest['day_type'] == 'full_day' ? 'Full Day' : 'Half Day',
-                        style: TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
                   ],
                 ),
                 TableRow(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
                       child: Text(
                         'From:',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
@@ -264,15 +324,15 @@ class LeaveDetailsCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         DateFormat('dd/MM/yyyy').format(leaveFrom),
-                        style: TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
                   ],
                 ),
                 TableRow(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
                       child: Text(
                         'To:',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
@@ -282,15 +342,15 @@ class LeaveDetailsCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         DateFormat('dd/MM/yyyy').format(leaveTo),
-                        style: TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
                   ],
                 ),
                 TableRow(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
                       child: Text(
                         'Total Days:',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
@@ -300,7 +360,7 @@ class LeaveDetailsCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         '${totalDays} ${totalDays == 1 ? 'Day' : 'Days'}',
-                        style: TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
                   ],
@@ -317,18 +377,18 @@ class LeaveDetailsCard extends StatelessWidget {
 class StatusCard extends StatelessWidget {
   final Map<String, dynamic> leaveRequest;
 
-  StatusCard({required this.leaveRequest});
+  const StatusCard({required this.leaveRequest});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       color: Colors.red[100],
-      margin: EdgeInsets.only(bottom: 8.0),
+      margin: const EdgeInsets.only(bottom: 8.0),
       child: Column(
         children: [
           // Card Header
           Container(
-            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12.0),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -338,10 +398,10 @@ class StatusCard extends StatelessWidget {
                 begin: Alignment.bottomRight,
                 end: Alignment.topLeft,
               ),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             ),
             width: double.infinity,
-            child: Text(
+            child: const Text(
               'Status',
               style: TextStyle(
                 fontSize: 14,
@@ -352,16 +412,16 @@ class StatusCard extends StatelessWidget {
           ),
           // Card Body
           AnimatedContainer(
-            duration: Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 300),
             width: double.infinity,
             padding: const EdgeInsets.all(12.0),
             decoration: BoxDecoration(
               color: leaveRequest['status'] == 'approved' ? Colors.green[400] : Colors.red[500],
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
             ),
             child: Text(
               '${leaveRequest['admin_reason']}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.white,
               ),
@@ -376,7 +436,7 @@ class StatusCard extends StatelessWidget {
 class ExpandableCard extends StatefulWidget {
   final String reason;
 
-  ExpandableCard({required this.reason});
+  const ExpandableCard({required this.reason});
 
   @override
   _ExpandableCardState createState() => _ExpandableCardState();
@@ -389,11 +449,11 @@ class _ExpandableCardState extends State<ExpandableCard> with SingleTickerProvid
   Widget build(BuildContext context) {
     return Card(
       color: Colors.orange[100],
-      margin: EdgeInsets.only(bottom: 8.0),
+      margin: const EdgeInsets.only(bottom: 8.0),
       child: GestureDetector(
         onTap: () {
           setState(() {
-            _isExpanded = !_isExpanded; // Toggle the expansion state
+            _isExpanded = !_isExpanded;
           });
         },
         child: Container(
@@ -407,7 +467,7 @@ class _ExpandableCardState extends State<ExpandableCard> with SingleTickerProvid
                 children: [
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 12.0),
+                    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12.0),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -417,12 +477,12 @@ class _ExpandableCardState extends State<ExpandableCard> with SingleTickerProvid
                         begin: Alignment.bottomRight,
                         end: Alignment.topLeft,
                       ),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        const Text(
                           'Reason',
                           style: TextStyle(
                             color: Colors.black,
@@ -431,7 +491,7 @@ class _ExpandableCardState extends State<ExpandableCard> with SingleTickerProvid
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(top: 0, right: 8),
+                          padding: const EdgeInsets.only(top: 0, right: 8),
                           child: CircleAvatar(
                             radius: 12,
                             backgroundColor: Colors.transparent,
@@ -447,9 +507,9 @@ class _ExpandableCardState extends State<ExpandableCard> with SingleTickerProvid
                   ),
                 ],
               ),
-              SizedBox(height: 0),
+              const SizedBox(height: 0),
               AnimatedSize(
-                duration: Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,33 +548,31 @@ class ThingCard extends StatefulWidget {
 }
 
 class _ThingCardState extends State<ThingCard> {
-  double _editButtonScale = 1.0; // Scale factor for edit button
-  double _deleteButtonScale = 1.0; // Scale factor for delete button
+  double _editButtonScale = 1.0;
+  double _deleteButtonScale = 1.0;
 
   void _onEditButtonPressed() {
-    // Handle edit action
     print('Edit button pressed');
   }
 
   void _onDeleteButtonPressed() {
-    // Handle delete action
     print('Delete button pressed');
   }
 
   void _animateButtonPress(String buttonType) {
     setState(() {
       if (buttonType == 'edit') {
-        _editButtonScale = 0.95; // Scale down on press
+        _editButtonScale = 0.95;
       } else if (buttonType == 'delete') {
-        _deleteButtonScale = 0.95; // Scale down on press
+        _deleteButtonScale = 0.95;
       }
     });
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       setState(() {
         if (buttonType == 'edit') {
-          _editButtonScale = 1.0; // Reset scale
+          _editButtonScale = 1.0;
         } else if (buttonType == 'delete') {
-          _deleteButtonScale = 1.0; // Reset scale
+          _deleteButtonScale = 1.0;
         }
       });
     });
@@ -523,13 +581,12 @@ class _ThingCardState extends State<ThingCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.only(bottom: 8.0),
-      color: Colors.transparent, // Make card transparent
-      elevation: 0, // No elevation for the card
+      margin: const EdgeInsets.only(bottom: 8.0),
+      color: Colors.transparent,
+      elevation: 0,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Equal space around buttons
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Edit Button
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -537,19 +594,19 @@ class _ThingCardState extends State<ThingCard> {
                 _onEditButtonPressed();
               },
               child: AnimatedContainer(
-                duration: Duration(milliseconds: 200), // Animation duration
-                transform: Matrix4.identity()..scale(_editButtonScale), // Scaling animation
+                duration: const Duration(milliseconds: 200),
+                transform: Matrix4.identity()..scale(_editButtonScale),
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 8.0), // Thinner padding for button
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                   decoration: BoxDecoration(
-                    color: Colors.blue[100], // Background color
-                    borderRadius: BorderRadius.circular(12), // Rounded corners
+                    color: Colors.blue[100],
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2), // Shadow color
-                        spreadRadius: 1, // Spread radius
-                        blurRadius: 4, // Blur radius
-                        offset: Offset(0, 2), // Changes position of shadow
+                        color: Colors.black.withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
@@ -557,13 +614,13 @@ class _ThingCardState extends State<ThingCard> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset(
-                        'assets/icons/edit.png', // Path to your custom image icon
+                        'assets/icons/edit.png',
                         color: Colors.blue,
-                        width: 20, // Smaller icon size
-                        height: 20, // Smaller icon size
+                        width: 20,
+                        height: 20,
                       ),
-                      SizedBox(width: 4), // Space between icon and text
-                      Text(
+                      const SizedBox(width: 4),
+                      const Text(
                         'Edit',
                         style: TextStyle(color: Colors.blue),
                       ),
@@ -573,7 +630,7 @@ class _ThingCardState extends State<ThingCard> {
               ),
             ),
           ),
-          SizedBox(width: 8), // Space between buttons
+          const SizedBox(width: 8),
           // Delete Button
           Expanded(
             child: GestureDetector(
@@ -582,19 +639,19 @@ class _ThingCardState extends State<ThingCard> {
                 _onDeleteButtonPressed();
               },
               child: AnimatedContainer(
-                duration: Duration(milliseconds: 200), // Animation duration
-                transform: Matrix4.identity()..scale(_deleteButtonScale), // Scaling animation
+                duration: const Duration(milliseconds: 200),
+                transform: Matrix4.identity()..scale(_deleteButtonScale),
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 8.0), // Thinner padding for button
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                   decoration: BoxDecoration(
-                    color: Colors.red[100], // Background color
-                    borderRadius: BorderRadius.circular(12), // Rounded corners
+                    color: Colors.red[100],
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2), // Shadow color
-                        spreadRadius: 1, // Spread radius
-                        blurRadius: 4, // Blur radius
-                        offset: Offset(0, 2), // Changes position of shadow
+                        color: Colors.black.withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
@@ -602,13 +659,13 @@ class _ThingCardState extends State<ThingCard> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset(
-                        'assets/icons/delete.png', // Path to your custom image icon
+                        'assets/icons/delete.png',
                         color: Colors.red,
-                        width: 20, // Smaller icon size
-                        height: 20, // Smaller icon size
+                        width: 20,
+                        height: 20,
                       ),
-                      SizedBox(width: 4), // Space between icon and text
-                      Text(
+                      const SizedBox(width: 4),
+                      const Text(
                         'Delete',
                         style: TextStyle(color: Colors.red),
                       ),

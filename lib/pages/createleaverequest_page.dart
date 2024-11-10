@@ -1,12 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:html_editor_plus/html_editor.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../api_service.dart'; // Import your ApiService
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:art_sweetalert/art_sweetalert.dart';
+import '../api_service.dart';
+import 'dart:async';
+
+import 'home_page.dart';
 
 class CreateLeaveRequestScreen extends StatefulWidget {
   @override
-  _CreateLeaveRequestScreenState createState() => _CreateLeaveRequestScreenState();
+  _CreateLeaveRequestScreenState createState() =>
+      _CreateLeaveRequestScreenState();
 }
 
 class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
@@ -18,6 +25,7 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
   String reason = '';
   int wordCount = 0;
   bool _isLoading = false;
+  File? _prescriptionImage;
 
   final Map<String, String> leaveTypeMapping = {
     'Select Leave Type': '',
@@ -35,7 +43,6 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
   DateTime leaveDateTo = DateTime.now();
 
   ApiService apiService = ApiService();
-  final HtmlEditorController _htmlEditorController = HtmlEditorController();
 
   Future<void> _loadToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -70,45 +77,52 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
     });
   }
 
-  void _submitForm() async {
-    if (wordCount < 15) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter at least 15 words')),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    String token = _token ?? '';
-
-    Map<String, dynamic> requestData = {
-      'leave_type': leaveTypeMapping[leaveType] ?? '',
-      'day_type': dayType.toLowerCase().replaceAll(' ', '_'),
-      'reason': reason,
-      'leave_date_from': DateFormat('yyyy-MM-dd').format(leaveDateFrom),
-      'leave_date_to': DateFormat('yyyy-MM-dd').format(leaveDateTo),
-    };
-
-    final response = await apiService.submitLeaveRequest(token, requestData);
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(response?['status'] == 'success'
-            ? 'Leave request submitted successfully!'
-            : response?['message'] ?? 'Error submitting request.'),
-        backgroundColor: response?['status'] == 'success' ? Colors.green : Colors.red,
+  void submitSuccess(BuildContext context) {
+    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(initialIndex: 3),
       ),
     );
+  }
 
-    if (response?['status'] == 'success') {
-      Navigator.of(context).pop();
+  Future<void> _submitForm() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      if (wordCount < 15) {
+        _showErrorDialog(context, 'Please enter at least 15 words in reason. Currently, you have entered only $wordCount words.');
+        return;
+      }
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      final requestData = {
+        'leave_type': leaveTypeMapping[leaveType] ?? '',
+        'day_type': dayType.toLowerCase().replaceAll(' ', '_'),
+        'reason': reason,
+        'leave_date_from': DateFormat('yyyy-MM-dd').format(leaveDateFrom),
+        'leave_date_to': DateFormat('yyyy-MM-dd').format(leaveDateTo),
+      };
+
+      try {
+        final response = await apiService.submitLeaveRequest(_token ?? '', requestData, _prescriptionImage);
+        setState(() {
+          _isLoading = false;
+        });
+        if (response != null && response['status'] == 'success') {
+          _showSuccessDialog(context, 'Leave request submitted for the review successfully!');
+          submitSuccess(context);
+        } else {
+          _showErrorDialog(context, response?['message'] ?? 'Error submitting request.');
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showErrorDialog(context, e.toString());
+      }
     }
   }
 
@@ -122,16 +136,83 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
     return DateFormat('dd-MM-yyyy').format(date);
   }
 
-  Future<void> _getEditorContent() async {
-    reason = await _htmlEditorController.getText() ?? '';
-    _updateWordCount(reason);
+  Future<void> _pickPrescriptionImage() async {
+    final PermissionStatus permissionStatus = await Permission.camera.request();
+    if (permissionStatus.isGranted) {
+      final ImagePicker _picker = ImagePicker();
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxHeight: 600,
+        maxWidth: 600,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _prescriptionImage = File(pickedFile.path);
+        });
+      }
+    } else {
+      _showErrorDialog(context, 'Please allow camera access to upload prescription.');
+    }
+  }
+
+  Future<void> _pickImageFromFile() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxHeight: 600,
+      maxWidth: 600,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _prescriptionImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _showImagePopup(BuildContext context, File image) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Image.file(image),
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String errorMessage) {
+    ArtSweetAlert.show(
+      context: context,
+      artDialogArgs: ArtDialogArgs(
+        title: "Error",
+        text: errorMessage,
+        type: ArtSweetAlertType.danger,
+        confirmButtonText: "OK",
+        onConfirm: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String successMessage) {
+    ArtSweetAlert.show(
+      context: context,
+      artDialogArgs: ArtDialogArgs(
+        title: "Success",
+        text: successMessage,
+        type: ArtSweetAlertType.success,
+        confirmButtonText: "OK",
+        onConfirm: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Leave Request'),
+        title: const Text('Create Leave Request'),
       ),
       body: FadeTransition(
         opacity: _animation,
@@ -143,7 +224,7 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Leave Type',
                       border: OutlineInputBorder(),
                     ),
@@ -162,9 +243,9 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                       return null;
                     },
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Day Type',
                       border: OutlineInputBorder(),
                     ),
@@ -187,27 +268,13 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                       return null;
                     },
                   ),
-                  SizedBox(height: 20),
-                  HtmlEditor(
-                    controller: _htmlEditorController,
-                    htmlEditorOptions: HtmlEditorOptions(
-                      hint: 'Enter your reason here...',
-                    ),
-                    callbacks: Callbacks(
-                      onInit: () {
-                        _htmlEditorController.setText(''); // Initialize the editor with empty content
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text('Word Count: $wordCount', style: TextStyle(fontSize: 16)),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: 'Leave Date From',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.calendar_today),
+                        icon: const Icon(Icons.calendar_today),
                         onPressed: () async {
                           DateTime? pickedDate = await showDatePicker(
                             context: context,
@@ -224,22 +291,26 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                       ),
                     ),
                     readOnly: true,
-                    controller: TextEditingController(
-                      text: formatDate(leaveDateFrom),
-                    ),
+                    controller: TextEditingController(text: formatDate(leaveDateFrom)),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select leave start date';
+                      }
+                      return null;
+                    },
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: 'Leave Date To',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.calendar_today),
+                        icon: const Icon(Icons.calendar_today),
                         onPressed: () async {
                           DateTime? pickedDate = await showDatePicker(
                             context: context,
                             initialDate: leaveDateTo,
-                            firstDate: leaveDateFrom,
+                            firstDate: DateTime.now(),
                             lastDate: DateTime(2100),
                           );
                           if (pickedDate != null && pickedDate != leaveDateTo) {
@@ -251,29 +322,99 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
                       ),
                     ),
                     readOnly: true,
-                    controller: TextEditingController(
-                      text: formatDate(leaveDateTo),
-                    ),
-                  ),
-                  if (leaveType == 'Medical Leave') ...[
-                    SizedBox(height: 20),
-                    Text('Upload Medical Prescription'),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Implement upload logic here
-                      },
-                      child: Text('Upload Prescription'),
-                    ),
-                  ],
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      _getEditorContent(); // Update content before submission
-                      _submitForm();
+                    controller: TextEditingController(text: formatDate(leaveDateTo)),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select leave end date';
+                      }
+                      return null;
                     },
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Reason for Leave',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        reason = value;
+                      });
+                      _updateWordCount(value);
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter reason for leave';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Word Count: $wordCount',
+                        style: TextStyle(
+                          color: wordCount > 14 ? Colors.green : Colors.red,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (_prescriptionImage != null)
+                    GestureDetector(
+                      onTap: () {
+                        _showImagePopup(context, _prescriptionImage!);
+                      },
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: FileImage(_prescriptionImage!),
+                            fit: BoxFit.cover,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 10),
+
+                  if (leaveType == 'Medical Leave')
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text('Upload Prescription (if any)'),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.camera_alt),
+                              label: const Text('Capture'),
+                              onPressed: _pickPrescriptionImage,
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(' Or '),
+                            const SizedBox(width: 10),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.folder),
+                              label: const Text('Choose'),
+                              onPressed: _pickImageFromFile,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _submitForm,
                     child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text('Submit Leave Request'),
+                        ? const CircularProgressIndicator()
+                        : const Text('Submit Leave Request'),
                   ),
                 ],
               ),
