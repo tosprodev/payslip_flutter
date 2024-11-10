@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -175,20 +176,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _requestPermissionAndDownload(String url) async {
-    var status = await Permission.storage.status;
-    print("Current permission status: $status");
+    PermissionStatus status = await Permission.storage.status;
 
-    // Check for permission status and request if needed
-    if (status.isDenied) {
-      // Request permission
-      _showPermissionDialog(url);
-    } else if (status.isGranted) {
-      print("Storage permission already granted. Proceeding with download.");
+    if (status.isDenied || status.isRestricted || status.isLimited) {
+      // Request permission if not granted
+      status = await Permission.storage.request();
+    }
+
+    // Proceed if permission is granted
+    if (status.isGranted) {
+      print("Storage permission granted. Proceeding with download.");
       await _downloadFile(url);
     } else {
-      _showSnackbar("Storage permission is required to download files.");
+      // Show a snackbar if permission is permanently denied
+      if (status.isPermanentlyDenied) {
+        openAppSettings();
+        _showSnackbar("Please enable storage permission in settings to download files.");
+      } else {
+        _showSnackbar("Storage permission is required to download files.");
+      }
     }
   }
+
 
   Future<void> _downloadFile(String url) async {
     Directory? downloadsDir;
