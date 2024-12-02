@@ -5,6 +5,9 @@ import '../api_service.dart';
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
+  final TextEditingController _emailController = TextEditingController();
+
+  LoginScreen({super.key});
 }
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
@@ -24,14 +27,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 1),
+      duration: const Duration(seconds: 1),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
 
-    _slideAnimation = Tween<Offset>(begin: Offset(0, 0.3), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
@@ -50,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     if (input.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please enter your email or employee ID.'),
           duration: Duration(seconds: 3),
           backgroundColor: Colors.red,
@@ -76,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response['message']),
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
             backgroundColor: Colors.green,
           ),
         );
@@ -91,14 +94,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response['message']),
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
             backgroundColor: Colors.red,
           ),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Failed to send OTP. Please try again.'),
           duration: Duration(seconds: 3),
           backgroundColor: Colors.red,
@@ -130,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 children: [
                   // Animated App Icon at the top
                   AnimatedContainer(
-                    duration: Duration(milliseconds: 600),
+                    duration: const Duration(milliseconds: 600),
                     curve: Curves.easeInOut,
                     margin: const EdgeInsets.only(bottom: 20),
                     child: Column(
@@ -140,8 +143,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           width: 600,
                           height: 60,
                         ),
-                        SizedBox(height: 10), // Space between logo and app name
-                        Text(
+                        const SizedBox(height: 10), // Space between logo and app name
+                        const Text(
                           'Login', // Replace with your app name
                           style: TextStyle(
                             fontSize: 24,
@@ -149,8 +152,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             color: Colors.black,
                           ),
                         ),
-                        SizedBox(height: 30),
-                        Text(
+                        const SizedBox(height: 30),
+                        const Text(
                           'Enter your official email or employee ID to login your account',
                           style: TextStyle(
                             fontSize: 16, // Adjust the font size as needed
@@ -162,11 +165,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ],
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
                   // Animated and styled search input box
                   AnimatedContainer(
-                    duration: Duration(milliseconds: 600),
+                    duration: const Duration(milliseconds: 600),
                     curve: Curves.easeInOut,
                     decoration: BoxDecoration(
                       boxShadow: [
@@ -174,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           color: Colors.black.withOpacity(0.1),
                           blurRadius: 10,
                           spreadRadius: 2,
-                          offset: Offset(0, 5),
+                          offset: const Offset(0, 5),
                         ),
                       ],
                       borderRadius: BorderRadius.circular(20),
@@ -182,31 +185,31 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     child: TextField(
                       controller: searchInputController,
                       decoration: InputDecoration(
-                        labelText: 'Official Email or Employee ID',
-                        labelStyle: TextStyle(color: Colors.blueGrey),
-                        prefixIcon: Icon(Icons.alternate_email_rounded, color: Colors.blueAccent),
+                        labelText: 'Email or Employee ID',
+                        labelStyle: const TextStyle(color: Colors.blueGrey),
+                        prefixIcon: const Icon(Icons.alternate_email_rounded, color: Colors.blueAccent),
                         filled: true,
                         fillColor: Colors.grey[200],
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
                       ),
                       keyboardType: TextInputType.emailAddress,
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Show loading indicator or button
                   isLoading
-                      ? CircularProgressIndicator()
+                      ? const CircularProgressIndicator()
                       : MouseRegion(
                     onEnter: (_) => setState(() => isButtonHovered = true),
                     onExit: (_) => setState(() => isButtonHovered = false),
                     child: AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                       width: 200,
                       decoration: BoxDecoration(
@@ -221,14 +224,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             color: Colors.blueAccent.withOpacity(0.5),
                             spreadRadius: 1,
                             blurRadius: 8,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: ElevatedButton(
                         onPressed: () => requestOtp(context),
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
@@ -236,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           fixedSize: Size(200, 40),
                         ),
-                        child: Text(
+                        child: const Text(
                           'Request OTP',
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),

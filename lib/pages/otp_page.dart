@@ -39,7 +39,9 @@ class _OtpScreenState extends State<OtpScreen> {
       _isLoading = false;
     });
 
-    if (response != null && response['status'] == 'success' && response['token'] != null) {
+    if (response != null &&
+        response['status'] == 'success' &&
+        response['token'] != null) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String token = response['token'];
       await prefs.setString('token', token);
@@ -64,7 +66,8 @@ class _OtpScreenState extends State<OtpScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(response?['message'] ?? 'Failed to verify OTP. Please try again.'),
+          content: Text(
+              response?['message'] ?? 'Failed to verify OTP. Please try again.'),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.red,
         ),
@@ -72,13 +75,23 @@ class _OtpScreenState extends State<OtpScreen> {
     }
   }
 
-  void _onChanged(String value, int index) {
-    if (value.length == 1) {
+  void _onChanged(String? value, int index) {
+    if (value != null && value.length == 1) {
       if (index < 5) {
         FocusScope.of(context).nextFocus();
       }
-    } else if (value.isEmpty && index > 0) {
+    } else if (value?.isEmpty ?? true && index > 0) {
       FocusScope.of(context).previousFocus();
+    }
+  }
+
+  void _onPaste(String? value) {
+    if (value != null && value.length == 6) {
+      setState(() {
+        for (int i = 0; i < 6; i++) {
+          _otpControllers[i].text = value[i]; // Fill each controller with the corresponding value
+        }
+      });
     }
   }
 
