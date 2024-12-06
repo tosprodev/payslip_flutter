@@ -42,7 +42,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadToken() async {
-    print("Loading token...");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _token = prefs.getString('token');

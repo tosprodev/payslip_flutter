@@ -15,7 +15,7 @@ import 'package:art_sweetalert/art_sweetalert.dart';
 class ProfileScreen extends StatefulWidget {
   final String token;
 
-  const ProfileScreen({Key? key, required this.token}) : super(key: key);
+  const ProfileScreen({super.key, required this.token});
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -300,7 +300,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
         title,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -324,7 +324,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         buildTableRow('Joining Date', employee!.doj),
         buildTableRow('Date of Birth', employee!.dob),
         buildTableRow('Blood Group', employee!.bloodGroup),
-        buildTableRow('Gross Salary', employee!.grossSalary),
+        buildTableRow('Gross Salary', employee!.grossSalary.toString()),
         buildTableRow('PF Number', employee!.pf),
         buildTableRow('Shift Type', employee!.shiftType),
         buildTableRow('Aadhar', employee!.aadhar),

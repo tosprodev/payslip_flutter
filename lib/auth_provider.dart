@@ -9,16 +9,15 @@ class AuthProvider with ChangeNotifier {
 
   void login(String token) {
     _token = token;
-    _storeToken(token); // Store token in SharedPreferences
+    _storeToken(token);
     notifyListeners();
   }
 
   Future<void> logout(BuildContext context) async {
     _token = null;
-    await _clearToken(); // Clear the token from SharedPreferences
+    await _clearToken();
     notifyListeners();
 
-    // Navigate back to the login screen
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -27,11 +26,11 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _storeToken(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token); // Store token
+    await prefs.setString('token', token);
   }
 
   Future<void> _clearToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token'); // Clear the token from storage
+    await prefs.remove('token');
   }
 }

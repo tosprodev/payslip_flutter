@@ -38,7 +38,6 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Exception: $e');
       return {
         'status': 'error',
         'message': 'Failed to send OTP. Please try again.',
@@ -77,7 +76,6 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Exception: $e');
       return {
         'status': 'error',
         'message': 'Failed to verify OTP. Please try again.',

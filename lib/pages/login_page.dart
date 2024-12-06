@@ -202,7 +202,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   ),
                   const SizedBox(height: 20),
 
-                  // Show loading indicator or button
                   isLoading
                       ? const CircularProgressIndicator()
                       : MouseRegion(

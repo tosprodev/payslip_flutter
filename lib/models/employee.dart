@@ -14,10 +14,10 @@ class Employee {
   final String doj;
   final String dob;
   final String bloodGroup;
-  final String grossSalary;
+  final int grossSalary;
   final String pf;
   final String? esi;
-  final String yearlyLeave;
+  final int yearlyLeave;
   final String photo;
   final String? lastDateOfEmployment;
   final DateTime createdAt;
@@ -83,11 +83,11 @@ class Employee {
       ifscCode: json['ifsc_code'],
       doj: json['doj'],
       dob: json['dob'],
-      bloodGroup: json['bloodgroup'], // Add this line
-      grossSalary: json['gross_salary'],
+      bloodGroup: json['bloodgroup'],
+      grossSalary: json['gross_salary'] as int,
       pf: json['pf'],
       esi: json['esi'],
-      yearlyLeave: json['yearly_leave'],
+      yearlyLeave: json['yearly_leave'] as int,
       photo: json['photo'],
       lastDateOfEmployment: json['last_date_of_employment'],
       createdAt: DateTime.parse(json['created_at']),
@@ -167,3 +167,48 @@ class Document {
     );
   }
 }
+
+class Company {
+  final int id;
+  final String name;
+  final String logo;
+  final String address;
+  final String city;
+  final String country;
+  final String registrationType;
+  final String registrationNumber;
+  final String contactNumber;
+  final String email;
+  final String currency;
+
+  Company({
+    required this.id,
+    required this.name,
+    required this.logo,
+    required this.address,
+    required this.city,
+    required this.country,
+    required this.registrationType,
+    required this.registrationNumber,
+    required this.contactNumber,
+    required this.email,
+    required this.currency,
+  });
+
+  factory Company.fromJson(Map<String, dynamic> json) {
+    return Company(
+      id: json['id'],
+      name: json['name'],
+      logo: json['logo'],
+      address: json['address'],
+      city: json['city'],
+      country: json['country'],
+      registrationType: json['registration_type'],
+      registrationNumber: json['registration_number'],
+      contactNumber: json['contact_number'],
+      email: json['email'],
+      currency: json['currency'],
+    );
+  }
+}
+

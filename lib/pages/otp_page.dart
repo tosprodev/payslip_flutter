@@ -89,7 +89,7 @@ class _OtpScreenState extends State<OtpScreen> {
     if (value != null && value.length == 6) {
       setState(() {
         for (int i = 0; i < 6; i++) {
-          _otpControllers[i].text = value[i]; // Fill each controller with the corresponding value
+          _otpControllers[i].text = value[i];
         }
       });
     }
