@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../api_service.dart';
 import 'login_page.dart';
 import 'home_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../constants.dart';
+import 'package:art_sweetalert/art_sweetalert.dart';
+import 'package:flutter/services.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -17,54 +19,87 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<Offset> _logoSlideAnimation;
   late Animation<Offset> _textSlideAnimation;
 
+  String appName = "Loading...";
+  String appLogo = "";
+
   @override
   void initState() {
     super.initState();
-
-    // Initialize the AnimationController
     _controller = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
 
-    // Fade animation for both logo and text
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeIn,
-      ),
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
 
-    // Slide animation for logo (from top to center)
-    _logoSlideAnimation = Tween<Offset>(begin: Offset(0, -1), end: Offset(0, 0)).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeIn,
-      ),
+    _logoSlideAnimation = Tween<Offset>(
+        begin: const Offset(0, -1), end: const Offset(0, 0))
+        .animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
 
-    // Slide animation for text (from bottom to center)
-    _textSlideAnimation = Tween<Offset>(begin: Offset(0, 1), end: Offset(0, 0)).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeIn,
-      ),
+    _textSlideAnimation = Tween<Offset>(
+        begin: const Offset(0, 1), end: const Offset(0, 0))
+        .animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
 
-    // Start the animations
     _controller.forward().then((_) {
-      // Wait for the animation to finish, then wait for a bit before navigating
-      Timer(Duration(seconds: 1), () {
-        _navigateToNextScreen(); // Navigate after the delay
-      });
+      _fetchAppSettings();
     });
+  }
+
+  Future<void> _fetchAppSettings() async {
+    final apiService = ApiService();
+
+    try {
+      final response = await apiService.fetchAppSettings();
+
+      if (response != null) {
+        setState(() {
+          appName = response['app_name'] ?? "App";
+          appLogo = response['appLogo'] ?? "";
+        });
+        Timer(const Duration(seconds: 1), () => _navigateToNextScreen());
+      } else {
+        throw Exception("No response");
+      }
+    } catch (e) {
+      // Show ArtSweetAlert on network failure
+      _showNetworkError();
+    }
+  }
+
+  void _showNetworkError() {
+    ArtSweetAlert.show(
+      context: context,
+      artDialogArgs: ArtDialogArgs(
+        type: ArtSweetAlertType.danger,
+        title: "Network Error",
+        text: "Failed to load app settings. Please check your connection.",
+        showCancelBtn: true,
+        cancelButtonText: "Exit",
+        confirmButtonText: "Retry",
+        onConfirm: () {
+          _fetchAppSettings(); // Retry fetching app settings
+        },
+        onCancel: () {
+          _exitApp(); // Exit the app
+        },
+      ),
+    );
+  }
+
+  void _exitApp() {
+    SystemNavigator.pop(); // Close the app
   }
 
   Future<void> _navigateToNextScreen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
-    // Navigate to the appropriate screen
     if (token != null) {
       Navigator.pushReplacement(
         context,
@@ -80,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _controller.dispose(); // Dispose of the controller
+    _controller.dispose();
     super.dispose();
   }
 
@@ -99,30 +134,27 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo with slide and fade animation
               SlideTransition(
                 position: _logoSlideAnimation,
                 child: FadeTransition(
                   opacity: _fadeAnimation,
-                  child: Image.asset(
-                    'assets/icon/app_icon.png', // Replace with your icon path
-                    width: 120,
-                    height: 80,
-                  ),
+                  child: appLogo.isNotEmpty
+                      ? Image.network(appLogo, width: 120, height: 80)
+                      : Image.asset('assets/icon/app_icon.png',
+                      width: 120, height: 80),
                 ),
               ),
-              SizedBox(height: 20),
-              // Text with slide and fade animation
+              const SizedBox(height: 20),
               SlideTransition(
                 position: _textSlideAnimation,
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: Text(
-                    Constants.appName,
-                    style: TextStyle(
+                    appName,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent, // Make the text color contrast the gradient
+                      color: Colors.black87,
                     ),
                   ),
                 ),

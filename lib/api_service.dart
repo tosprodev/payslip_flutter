@@ -213,5 +213,22 @@ class ApiService {
     }
   }
 
+  //Get Settings
+  Future<Map<String, dynamic>?> fetchAppSettings() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/app-setting'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching app settings: $e");
+      return null;
+    }
+  }
 
 }
