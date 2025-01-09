@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<Offset> _logoSlideAnimation;
   late Animation<Offset> _textSlideAnimation;
 
-  String appName = "Loading...";
+  String appName = "ATA CRM";
   String appLogo = "";
 
   @override

@@ -221,7 +221,7 @@ class _ExpandableMainCardState extends State<ExpandableMainCard> {
                               totalDays: widget.totalDays,
                             ),
                             StatusCard(leaveRequest: widget.leaveRequest),
-                            const ThingCard(),
+                            //const ThingCard(),
                           ],
                         ),
                       ),
@@ -540,7 +540,7 @@ String capitalizeFirstLetter(String text) {
   return text[0].toUpperCase() + text.substring(1).toLowerCase();
 }
 
-class ThingCard extends StatefulWidget {
+/*class ThingCard extends StatefulWidget {
   const ThingCard({Key? key}) : super(key: key);
 
   @override
@@ -679,7 +679,7 @@ class _ThingCardState extends State<ThingCard> {
       ),
     );
   }
-}
+}*/
 
 
 

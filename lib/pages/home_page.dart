@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
       _children = [
         HomeScreen(),
         AttendanceScreen(),
-        PayslipScreen(),
+        PayslipScreen(token: _token ?? ""),
         LeaveManagementScreen(token: _token ?? ""),
         ProfileScreen(token: _token ?? ""),
       ];
