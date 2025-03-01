@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use, unnecessary_null_comparison, library_private_types_in_public_api
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -205,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       downloadsDir = await getApplicationDocumentsDirectory();
     }
 
-    final appFolder = Directory('${downloadsDir!.path}/${Constants.appName}');
+    final appFolder = Directory('${downloadsDir.path}/${Constants.appName}');
     if (!await appFolder.exists()) {
       await appFolder.create();
     }

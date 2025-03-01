@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../api_service.dart';
@@ -39,12 +41,14 @@ class LeaveManagementScreen extends StatelessWidget {
           }
         },
       ),
-      floatingActionButton: AnimatedButton(),
+      floatingActionButton: const AnimatedButton(),
     );
   }
 }
 
 class AnimatedButton extends StatefulWidget {
+  const AnimatedButton({super.key});
+
   @override
   _AnimatedButtonState createState() => _AnimatedButtonState();
 }
@@ -100,7 +104,7 @@ class _AnimatedButtonState extends State<AnimatedButton> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CreateLeaveRequestScreen()),
+              MaterialPageRoute(builder: (context) => const CreateLeaveRequestScreen()),
             );
           },
           backgroundColor: Colors.transparent,
@@ -121,7 +125,7 @@ class ExpandableMainCard extends StatefulWidget {
   final Map<String, dynamic> leaveRequest;
   final int totalDays;
 
-  ExpandableMainCard({required this.leaveRequest, required this.totalDays});
+  const ExpandableMainCard({super.key, required this.leaveRequest, required this.totalDays});
 
   @override
   _ExpandableMainCardState createState() => _ExpandableMainCardState();
@@ -161,10 +165,10 @@ class _ExpandableMainCardState extends State<ExpandableMainCard> {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                  bottomLeft: _isExpanded ? Radius.zero : Radius.circular(12),
-                  bottomRight: _isExpanded ? Radius.zero : Radius.circular(12),
+                  topLeft: const Radius.circular(12),
+                  topRight: const Radius.circular(12),
+                  bottomLeft: _isExpanded ? Radius.zero : const Radius.circular(12),
+                  bottomRight: _isExpanded ? Radius.zero : const Radius.circular(12),
                 ),
               ),
               child: Row(
@@ -241,7 +245,7 @@ class LeaveDetailsCard extends StatelessWidget {
   final Map<String, dynamic> leaveRequest;
   final int totalDays;
 
-  const LeaveDetailsCard({required this.leaveRequest, required this.totalDays});
+  const LeaveDetailsCard({super.key, required this.leaveRequest, required this.totalDays});
 
   @override
   Widget build(BuildContext context) {
@@ -359,7 +363,7 @@ class LeaveDetailsCard extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        '${totalDays} ${totalDays == 1 ? 'Day' : 'Days'}',
+                        '$totalDays ${totalDays == 1 ? 'Day' : 'Days'}',
                         style: const TextStyle(fontSize: 12),
                       ),
                     ),
@@ -377,7 +381,7 @@ class LeaveDetailsCard extends StatelessWidget {
 class StatusCard extends StatelessWidget {
   final Map<String, dynamic> leaveRequest;
 
-  const StatusCard({required this.leaveRequest});
+  const StatusCard({super.key, required this.leaveRequest});
 
   @override
   Widget build(BuildContext context) {
@@ -436,7 +440,7 @@ class StatusCard extends StatelessWidget {
 class ExpandableCard extends StatefulWidget {
   final String reason;
 
-  const ExpandableCard({required this.reason});
+  const ExpandableCard({super.key, required this.reason});
 
   @override
   _ExpandableCardState createState() => _ExpandableCardState();
@@ -516,7 +520,7 @@ class _ExpandableCardState extends State<ExpandableCard> with SingleTickerProvid
                   children: [
                     Html(
                       data: _isExpanded
-                          ? '${widget.reason}'
+                          ? widget.reason
                           : '${widget.reason.split(' ').take(12).join(' ')}...',
                       style: {
                         "body": Style(

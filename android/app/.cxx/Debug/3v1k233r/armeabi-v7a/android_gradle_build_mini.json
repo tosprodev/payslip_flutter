@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/tanmoysaha/development/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/tanmoysaha/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/tanmoysaha/Documents/payslip_flutter/android/app/.cxx/Debug/3v1k233r/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/tanmoysaha/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/tanmoysaha/Documents/payslip_flutter/android/app/.cxx/Debug/3v1k233r/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

@@ -36,7 +36,7 @@ class Payslip {
   final double esicEmp;
   final double otherBenefits;
   final double food;
-  final double extraA;
+  final String extraA;
   final double extraB;
   final double extraC;
   final double extraD;
@@ -124,7 +124,7 @@ class Payslip {
       esicEmp: double.parse(json['esic_emp'].toString()),
       otherBenefits: double.parse(json['other_benefits'].toString()),
       food: double.parse(json['food'].toString()),
-      extraA: json['exta'] != null ? double.parse(json['exta'].toString()) : 0.0,
+      extraA: json['extraA'],
       extraB: json['extb'] != null ? double.parse(json['extb'].toString()) : 0.0,
       extraC: json['extc'] != null ? double.parse(json['extc'].toString()) : 0.0,
       extraD: json['extd'] != null ? double.parse(json['extd'].toString()) : 0.0,
@@ -257,7 +257,7 @@ class Company {
     return Company(
       id: json['id'],
       name: json['name'],
-      logo: json['logo'] ?? '', // Handle null logo
+      logo: json['logo'] ?? '',
       address: json['address'] ?? '',
       city: json['city'] ?? '',
       country: json['country'] ?? '',

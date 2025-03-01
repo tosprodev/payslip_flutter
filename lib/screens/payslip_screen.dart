@@ -1,11 +1,11 @@
-import 'dart:io';
+// ignore_for_file: unused_local_variable, use_build_context_synchronously, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:art_sweetalert/art_sweetalert.dart';
 import '../services/payslip_service.dart';
 import '../models/payslip.dart';
-import 'package:art_sweetalert/art_sweetalert.dart';
 
 
 class PayslipScreen extends StatelessWidget {
@@ -105,8 +105,7 @@ class PayslipCard extends StatelessWidget {
                     ['LOP Days', payslip.lopDays.toString()],
                     ['Leave Days Taken', payslip.leaveDaysTaken.toString()],
                     ['In-Hand Salary', '₹${payslip.grossSalary}'],
-                    if (payslip.canteen != null)
-                      ['LOP Amount', '₹${payslip.canteen}'],
+                    ['LOP Amount', '₹${payslip.canteen}'],
                     ['This Month Salary', '₹${payslip.inHandSalary}'],
                   ]),
                   const SizedBox(height: 10),
@@ -148,7 +147,7 @@ class PayslipCard extends StatelessWidget {
       );
 
       // Download payslip with progress
-      await payslipService.downloadPayslip(hashedId, token, savePath, null, context);
+      await payslipService.downloadPayslip(hashedId, token, context);
 
       // Dismiss the loading dialog
       Navigator.of(context).pop();
@@ -179,7 +178,7 @@ class PayslipCard extends StatelessWidget {
 
   Widget _buildTable(List<List<String>> data) {
     return Table(
-      columnWidths: {0: FractionColumnWidth(0.4), 1: FractionColumnWidth(0.6)},
+      columnWidths: const {0: FractionColumnWidth(0.4), 1: FractionColumnWidth(0.6)},
       border: TableBorder.all(color: Colors.black.withOpacity(0.2)),
       children: data.map((row) {
         return TableRow(
@@ -195,11 +194,6 @@ class PayslipCard extends StatelessWidget {
   }
 }
 
-Future<String> _getSavePath() async {
-  final directory = await getExternalStorageDirectory();
-  final savePath = '${directory!.path}/payslip_}.pdf';
-  return savePath;
-}
 
 class PayslipDetailScreen extends StatelessWidget {
   final Payslip payslip;

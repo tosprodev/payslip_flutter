@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api, unused_element
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -9,7 +11,7 @@ import 'home_page.dart';
 class OtpScreen extends StatefulWidget {
   final String searchInput;
 
-  const OtpScreen({Key? key, required this.searchInput}) : super(key: key);
+  const OtpScreen({super.key, required this.searchInput});
 
   @override
   _OtpScreenState createState() => _OtpScreenState();
@@ -51,7 +53,7 @@ class _OtpScreenState extends State<OtpScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePage(),
+            builder: (context) => const HomePage(),
           ),
         );
       } else {
@@ -132,7 +134,7 @@ class _OtpScreenState extends State<OtpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(6, (index) {
-                  return Container(
+                  return SizedBox(
                     width: 50,
                     height: 70,
                     child: TextField(

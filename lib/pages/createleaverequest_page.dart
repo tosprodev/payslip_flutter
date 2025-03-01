@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +13,8 @@ import 'dart:async';
 import 'home_page.dart';
 
 class CreateLeaveRequestScreen extends StatefulWidget {
+  const CreateLeaveRequestScreen({super.key});
+
   @override
   _CreateLeaveRequestScreenState createState() =>
       _CreateLeaveRequestScreenState();
@@ -82,7 +86,7 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => HomePage(initialIndex: 3),
+        builder: (context) => const HomePage(initialIndex: 3),
       ),
     );
   }
@@ -139,8 +143,8 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
   Future<void> _pickPrescriptionImage() async {
     final PermissionStatus permissionStatus = await Permission.camera.request();
     if (permissionStatus.isGranted) {
-      final ImagePicker _picker = ImagePicker();
-      final XFile? pickedFile = await _picker.pickImage(
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
         source: ImageSource.camera,
         maxHeight: 600,
         maxWidth: 600,
@@ -156,8 +160,8 @@ class _CreateLeaveRequestScreenState extends State<CreateLeaveRequestScreen>
   }
 
   Future<void> _pickImageFromFile() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? pickedFile = await _picker.pickImage(
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
       maxHeight: 600,
       maxWidth: 600,

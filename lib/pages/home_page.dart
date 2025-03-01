@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, non_constant_identifier_names, use_build_context_synchronously, deprecated_member_use
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -16,7 +18,7 @@ import '../constants.dart';
 
 class HomePage extends StatefulWidget {
   final int initialIndex;
-  HomePage({Key? key, this.initialIndex = 0}) : super(key: key);
+  const HomePage({super.key, this.initialIndex = 0});
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -58,8 +60,8 @@ class _HomePageState extends State<HomePage> {
         _profilePicture = null;
       }
       _children = [
-        HomeScreen(),
-        AttendanceScreen(),
+        const HomeScreen(),
+        const AttendanceScreen(),
         PayslipScreen(token: _token ?? ""),
         LeaveManagementScreen(token: _token ?? ""),
         ProfileScreen(token: _token ?? ""),
@@ -130,7 +132,6 @@ class _HomePageState extends State<HomePage> {
       return false;
     }
     exit(0);
-    return true;
   }
 
   void _showProfileMenu(BuildContext context) {
@@ -153,7 +154,7 @@ class _HomePageState extends State<HomePage> {
         ),
         PopupMenuItem(
           value: 'settings',
-          child: Container(
+          child: SizedBox(
             width: 100,
             child: Row(
               children: [
@@ -166,7 +167,7 @@ class _HomePageState extends State<HomePage> {
         ),
         PopupMenuItem(
           value: 'logout',
-          child: Container(
+          child: SizedBox(
             width: 100,
             child: Row(
               children: [
@@ -187,7 +188,7 @@ class _HomePageState extends State<HomePage> {
       } else if (value == 'settings') {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SettingsScreen()),
+          MaterialPageRoute(builder: (context) => const SettingsScreen()),
         );
       } else if (value == 'logout') {
         _logout(context);
@@ -349,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SettingsScreen()),
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
                 );
               },
             ),
@@ -364,7 +365,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: _children.isNotEmpty ? _children[_currentIndex] : Center(child: CircularProgressIndicator()),
+      body: _children.isNotEmpty ? _children[_currentIndex] : const Center(child: CircularProgressIndicator()),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
