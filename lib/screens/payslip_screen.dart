@@ -17,6 +17,10 @@ class PayslipScreen extends StatelessWidget {
     final PayslipService payslipService = PayslipService();
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Payslips'),
+        backgroundColor: Colors.blueAccent,
+      ),
       body: FutureBuilder<List<Payslip>>(
         future: payslipService.fetchPayslips(token),
         builder: (context, snapshot) {
@@ -72,7 +76,7 @@ class PayslipCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 10),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(0),
+          borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
             colors: [Colors.blue.shade50, Colors.pink.shade50],
             begin: Alignment.topLeft,
@@ -80,7 +84,7 @@ class PayslipCard extends StatelessWidget {
           ),
         ),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.all(5),
+          tilePadding: const EdgeInsets.all(10),
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
           title: Text(
             '# $formattedDate',  // Displaying Month and Year like "July 2024"
