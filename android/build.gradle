@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        ndkVersion = "28.0.13004108"
+        ndkVersion = "28.0.12433566"
     }
     repositories {
         google()

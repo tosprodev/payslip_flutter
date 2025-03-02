@@ -1,67 +1,71 @@
 class Payslip {
-  final int id;
-  final String payslipMonth;
-  final String payslipYear;
-  final double grossSalary;
-  final double inHandSalary;
-  final double ctc;
-  final double paidDays;
-  final double workDays;
-  final double lateDays;
-  final double lopDays;
-  final double leaveDaysTaken;
-  final String payDate;
-  final String hashedId;
-  final Employee employee;
-  final Company company;
-  final double ptax;
-  final double incentive;
-  final double canteen;
-  final double transportation;
-  final double basic;
-  final double hra;
-  final double convenyance;
-  final double special;
-  final double nightshift;
-  final double locationPay;
-  final double leaveTravel;
-  final double cityAllow;
-  final double otherAllow;
-  final double epf;
-  final double tds;
-  final double esic;
-  final double gratuity;
-  final double grossWage;
-  final double epfEmp;
-  final double esicEmp;
-  final double otherBenefits;
-  final double food;
-  final String extraA;
-  final double extraB;
-  final double extraC;
-  final double extraD;
-  final String hAshedId;
+  int id;
+  int companyId;
+  int employeeId;
+  String payslipMonth;
+  String payslipYear;
+  int paidDays;
+  int workDays;
+  int lateDays;
+  int lopDays;
+  int leaveDaysTaken;
+  int leaveBalance;
+  String payDate;
+  num grossSalary;
+  num ptax;
+  num incentive;
+  num canteen;
+  num transportation;
+  num grossSalaryMonth;
+  num basic;
+  num hra;
+  num convenyance;
+  num special;
+  num nightshift;
+  num locationPay;
+  num leaveTravel;
+  num cityAllow;
+  num otherAllow;
+  num epf;
+  num tds;
+  num esic;
+  num gratuity;
+  num grossWage;
+  num epfemp;
+  num esicEmp;
+  num otherBenefits;
+  num ctc;
+  num food;
+  dynamic exta;
+  dynamic extb;
+  dynamic extc;
+  dynamic extd;
+  num inhandSalary;
+  String createdAt;
+  String updatedAt;
+  String hashedId;
+  Employee employee;
+  Company company;
 
   Payslip({
     required this.id,
+    required this.companyId,
+    required this.employeeId,
     required this.payslipMonth,
     required this.payslipYear,
-    required this.grossSalary,
-    required this.inHandSalary,
-    required this.ctc,
     required this.paidDays,
     required this.workDays,
     required this.lateDays,
     required this.lopDays,
     required this.leaveDaysTaken,
+    required this.leaveBalance,
     required this.payDate,
-    required this.hashedId,
-    required this.employee,
-    required this.company,
+    required this.grossSalary,
     required this.ptax,
     required this.incentive,
     required this.canteen,
     required this.transportation,
+    required this.grossSalaryMonth,
     required this.basic,
     required this.hra,
     required this.convenyance,
@@ -76,59 +80,70 @@ class Payslip {
     required this.esic,
     required this.gratuity,
     required this.grossWage,
-    required this.epfEmp,
+    required this.epfemp,
     required this.esicEmp,
     required this.otherBenefits,
+    required this.ctc,
     required this.food,
-    required this.extraA,
-    required this.extraB,
-    required this.extraC,
-    required this.extraD,
-    required this.hAshedId,
+    this.exta,
+    this.extb,
+    this.extc,
+    this.extd,
+    required this.inhandSalary,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.hashedId,
+    required this.employee,
+    required this.company,
   });
 
   factory Payslip.fromJson(Map<String, dynamic> json) {
     return Payslip(
       id: json['id'],
+      companyId: json['company_id'],
+      employeeId: json['employee_id'],
       payslipMonth: json['payslip_month'],
       payslipYear: json['payslip_year'],
-      grossSalary: double.parse(json['gross_salary'].toString()),
-      inHandSalary: double.parse(json['inhand_salary'].toString()),
-      ctc: double.parse(json['ctc'].toString()),
-      paidDays: double.parse(json['paid_days'].toString()),
-      workDays: double.parse(json['work_days'].toString()),
-      lateDays: double.parse(json['late_days'].toString()),
-      lopDays: double.parse(json['lop_days'].toString()),
-      leaveDaysTaken: double.parse(json['leave_days_taken'].toString()),
+      paidDays: json['paid_days'],
+      workDays: json['work_days'],
+      lateDays: json['late_days'],
+      lopDays: json['lop_days'],
+      leaveDaysTaken: json['leave_days_taken'],
+      leaveBalance: json['leave_balance'],
       payDate: json['pay_date'],
+      grossSalary: json['gross_salary'],
+      ptax: json['ptax'],
+      incentive: json['incentive'],
+      canteen: json['canteen'],
+      transportation: json['transportation'],
+      grossSalaryMonth: json['gross_salary_month'],
+      basic: json['basic'],
+      hra: json['hra'],
+      convenyance: json['convenyance'],
+      special: json['special'],
+      nightshift: json['nightshift'],
+      locationPay: json['location_pay'],
+      leaveTravel: json['leave_travel'],
+      cityAllow: json['city_allow'],
+      otherAllow: json['other_allow'],
+      epf: json['epf'],
+      tds: json['tds'],
+      esic: json['esic'],
+      gratuity: json['gratuity'],
+      grossWage: json['gross_wage'],
+      epfemp: json['epfemp'],
+      esicEmp: json['esic_emp'],
+      otherBenefits: json['other_benefits'],
+      ctc: json['ctc'],
+      food: json['food'],
+      exta: json['exta'],
+      extb: json['extb'],
+      extc: json['extc'],
+      extd: json['extd'],
+      inhandSalary: json['inhand_salary'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
       hashedId: json['hashedId'],
-      ptax: double.parse(json['ptax'].toString()),
-      incentive: double.parse(json['incentive'].toString()),
-      canteen: double.parse(json['canteen'].toString()),
-      transportation: double.parse(json['transportation'].toString()),
-      basic: double.parse(json['basic'].toString()),
-      hra: double.parse(json['hra'].toString()),
-      convenyance: double.parse(json['convenyance'].toString()),
-      special: double.parse(json['special'].toString()),
-      nightshift: double.parse(json['nightshift'].toString()),
-      locationPay: double.parse(json['location_pay'].toString()),
-      leaveTravel: double.parse(json['leave_travel'].toString()),
-      cityAllow: double.parse(json['city_allow'].toString()),
-      otherAllow: double.parse(json['other_allow'].toString()),
-      epf: double.parse(json['epf'].toString()),
-      tds: double.parse(json['tds'].toString()),
-      esic: double.parse(json['esic'].toString()),
-      gratuity: double.parse(json['gratuity'].toString()),
-      grossWage: double.parse(json['gross_wage'].toString()),
-      epfEmp: double.parse(json['epfemp'].toString()),
-      esicEmp: double.parse(json['esic_emp'].toString()),
-      otherBenefits: double.parse(json['other_benefits'].toString()),
-      food: double.parse(json['food'].toString()),
-      extraA: json['extraA'],
-      extraB: json['extb'] != null ? double.parse(json['extb'].toString()) : 0.0,
-      extraC: json['extc'] != null ? double.parse(json['extc'].toString()) : 0.0,
-      extraD: json['extd'] != null ? double.parse(json['extd'].toString()) : 0.0,
-      hAshedId: json['hashedId'].toString(),
       employee: Employee.fromJson(json['employee']),
       company: Company.fromJson(json['company']),
     );
@@ -136,44 +151,67 @@ class Payslip {
 }
 
 class Employee {
-  final int id;
-  final String fullName;
-  final String email;
-  final String phone;
-  final String designation;
-  final String panNumber;
-  final String bankName;
-  final String bankAccountNumber;
-  final String ifscCode;
-  final String doj;
-  final String dob;
-  final String bloodGroup;
-  final String grossSalary;
-  final String pf;
-  final String shiftType;
-  final String aadhar;
-  final String lastEducation;
-  final String degree;
-  final String college;
-  final String completionYear;
-  final String address;
-  final String emergencyContact;
+  int id;
+  int companyId;
+  String employeeId;
+  String designation;
+  String fullName;
+  String email;
+  String phone;
+  String panNumber;
+  String bankName;
+  String bankAccountNumber;
+  String ifscCode;
+  String doj;
+  String dob;
+  dynamic lastDateOfEmployment;
+  int roleId;
+  String bloodgroup;
+  num grossSalary;
+  String pf;
+  dynamic esi;
+  int yearlyLeave;
+  String uan;
+  String shiftType;
+  String aadhar;
+  String lastEducation;
+  String degree;
+  String college;
+  int completionYear;
+  String address;
+  String emergencyContact;
+  dynamic loanType;
+  dynamic loanAmount;
+  String photo;
+  String createdAt;
+  String updatedAt;
+  dynamic loginCode;
+  dynamic loginCodeGeneratedAt;
+  dynamic lastLoginAt;
+  dynamic probationPeriod;
 
   Employee({
     required this.id,
+    required this.companyId,
+    required this.employeeId,
+    required this.designation,
     required this.fullName,
     required this.email,
     required this.phone,
-    required this.designation,
     required this.panNumber,
     required this.bankName,
     required this.bankAccountNumber,
     required this.ifscCode,
     required this.doj,
     required this.dob,
-    required this.bloodGroup,
+    this.lastDateOfEmployment,
+    required this.roleId,
+    required this.bloodgroup,
     required this.grossSalary,
     required this.pf,
+    this.esi,
+    required this.yearlyLeave,
+    required this.uan,
     required this.shiftType,
     required this.aadhar,
     required this.lastEducation,
@@ -182,55 +220,91 @@ class Employee {
     required this.completionYear,
     required this.address,
     required this.emergencyContact,
+    this.loanType,
+    this.loanAmount,
+    required this.photo,
+    required this.createdAt,
+    required this.updatedAt,
+    this.loginCode,
+    this.loginCodeGeneratedAt,
+    this.lastLoginAt,
+    this.probationPeriod,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
       id: json['id'],
+      companyId: json['company_id'],
+      employeeId: json['employee_id'],
+      designation: json['designation'],
       fullName: json['full_name'],
       email: json['email'],
       phone: json['phone'],
-      designation: json['designation'],
       panNumber: json['pan_number'],
       bankName: json['bank_name'],
       bankAccountNumber: json['bank_account_number'],
       ifscCode: json['ifsc_code'],
       doj: json['doj'],
       dob: json['dob'],
-      bloodGroup: json['bloodgroup'],
-      grossSalary: json['gross_salary'].toString(),
-      pf: json['pf'].toString(),
+      lastDateOfEmployment: json['last_date_of_employment'],
+      roleId: json['role_id'],
+      bloodgroup: json['bloodgroup'],
+      grossSalary: json['gross_salary'],
+      pf: json['pf'],
+      esi: json['esi'],
+      yearlyLeave: json['yearly_leave'],
+      uan: json['uan'],
       shiftType: json['shift_type'],
-      aadhar: json['aadhar'].toString(),
+      aadhar: json['aadhar'],
       lastEducation: json['last_education'],
       degree: json['degree'],
       college: json['college'],
-      completionYear: json['completion_year'].toString(),
+      completionYear: json['completion_year'],
       address: json['address'],
       emergencyContact: json['emergency_contact'],
+      loanType: json['loan_type'],
+      loanAmount: json['loan_amount'],
+      photo: json['photo'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+      loginCode: json['login_code'],
+      loginCodeGeneratedAt: json['login_code_generated_at'],
+      lastLoginAt: json['last_login_at'],
+      probationPeriod: json['probation_period'],
     );
   }
 }
 
 class Company {
-  final int id;
-  final String name;
-  final String logo;
-  final String address;
-  final String city;
-  final String country;
-  final String registrationType;
-  final String registrationNumber;
-  final String contactNumber;
-  final String email;
-  final String epfService;
-  final String esicService;
-  final String currency;
-  final String host;
-  final String port;
-  final String username;
-  final String fromEmail;
-  final String fromName;
+  int id;
+  String name;
+  String logo;
+  String address;
+  String city;
+  String pincode;
+  String country;
+  String registrationType;
+  String registrationNumber;
+  String contactNumber;
+  String email;
+  String epfService;
+  String esicService;
+  String currency;
+  String stampStatus;
+  String stampImg;
+  String stampDate;
+  String sendEmail;
+  String host;
+  String port;
+  String username;
+  String encryption;
+  String fromEmail;
+  String fromName;
+  String createdAt;
+  String updatedAt;
+  String modules;
+  int notesEnabled;
+  int leadmanagementEnabled;
 
   Company({
     required this.id,
@@ -238,6 +312,7 @@ class Company {
     required this.logo,
     required this.address,
     required this.city,
+    required this.pincode,
     required this.country,
     required this.registrationType,
     required this.registrationNumber,
@@ -246,33 +321,54 @@ class Company {
     required this.epfService,
     required this.esicService,
     required this.currency,
+    required this.stampStatus,
+    required this.stampImg,
+    required this.stampDate,
+    required this.sendEmail,
     required this.host,
     required this.port,
     required this.username,
+    required this.encryption,
     required this.fromEmail,
     required this.fromName,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.modules,
+    required this.notesEnabled,
+    required this.leadmanagementEnabled,
   });
 
   factory Company.fromJson(Map<String, dynamic> json) {
     return Company(
       id: json['id'],
       name: json['name'],
-      logo: json['logo'] ?? '',
-      address: json['address'] ?? '',
-      city: json['city'] ?? '',
-      country: json['country'] ?? '',
-      registrationType: json['registration_type'] ?? '',
-      registrationNumber: json['registration_number'] ?? '',
-      contactNumber: json['contact_number'] ?? '',
-      email: json['email'] ?? '',
-      epfService: json['epf_service'] ?? '',
-      esicService: json['esic_service'] ?? '',
-      currency: json['currency'] ?? '',
-      host: json['host'] ?? '',
-      port: json['port'] ?? '',
-      username: json['username'] ?? '',
-      fromEmail: json['from_email'] ?? '',
-      fromName: json['from_name'] ?? '',
+      logo: json['logo'],
+      address: json['address'],
+      city: json['city'],
+      pincode: json['pincode'],
+      country: json['country'],
+      registrationType: json['registration_type'],
+      registrationNumber: json['registration_number'],
+      contactNumber: json['contact_number'],
+      email: json['email'],
+      epfService: json['epf_service'],
+      esicService: json['esic_service'],
+      currency: json['currency'],
+      stampStatus: json['stamp_status'],
+      stampImg: json['stamp_img'],
+      stampDate: json['stamp_date'],
+      sendEmail: json['send_email'],
+      host: json['host'],
+      port: json['port'],
+      username: json['username'],
+      encryption: json['encryption'],
+      fromEmail: json['from_email'],
+      fromName: json['from_name'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+      modules: json['modules'],
+      notesEnabled: json['notes_enabled'],
+      leadmanagementEnabled: json['leadmanagement_enabled'],
     );
   }
 }

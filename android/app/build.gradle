@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.codewebcraft.payslip"
     compileSdk = 34
-    ndkVersion = "28.0.13004108"
+    ndkVersion = "28.0.12433566"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

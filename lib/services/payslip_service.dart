@@ -9,7 +9,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/payslip.dart';
 import '../constants.dart';
-//import 'package:open_filex/open_filex.dart';
 
 class PayslipService {
   static const String apiUrl = "${Constants.baseUrl}/api/payslips";
@@ -63,7 +62,6 @@ class PayslipService {
 
         if (response.statusCode == 200) {
           print("✅ Download complete! File saved at: $savePath");
-          _openFile(savePath);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Download successful: $savePath')),
           );
@@ -86,10 +84,4 @@ class PayslipService {
     }
     return false;
   }
-
-  // Open the downloaded PDF file
-  Future<void> _openFile(String filePath) async {
-    //await OpenFilex.open(filePath);
-  }
-
 }

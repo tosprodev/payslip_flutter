@@ -7,7 +7,6 @@ import 'package:art_sweetalert/art_sweetalert.dart';
 import '../services/payslip_service.dart';
 import '../models/payslip.dart';
 
-
 class PayslipScreen extends StatelessWidget {
   final String token;
 
@@ -45,7 +44,7 @@ class PayslipScreen extends StatelessWidget {
             itemCount: payslips.length,
             itemBuilder: (context, index) {
               final payslip = payslips[index];
-              return PayslipCard(payslip: payslip, token: token,);
+              return PayslipCard(payslip: payslip, token: token);
             },
           );
         },
@@ -106,13 +105,13 @@ class PayslipCard extends StatelessWidget {
                     ['Leave Days Taken', payslip.leaveDaysTaken.toString()],
                     ['In-Hand Salary', '₹${payslip.grossSalary}'],
                     ['LOP Amount', '₹${payslip.canteen}'],
-                    ['This Month Salary', '₹${payslip.inHandSalary}'],
+                    ['This Month Salary', '₹${payslip.inhandSalary}'],
                   ]),
                   const SizedBox(height: 10),
                   Center( // Centering the Download button
                     child: ElevatedButton(
                       onPressed: () {
-                        _downloadPayslip(payslip.hAshedId, context); // Call your download method here
+                        _downloadPayslip(payslip.hashedId, context); // Call your download method here
                       },
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color set to white
@@ -193,7 +192,6 @@ class PayslipCard extends StatelessWidget {
     );
   }
 }
-
 
 class PayslipDetailScreen extends StatelessWidget {
   final Payslip payslip;
