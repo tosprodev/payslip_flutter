@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use, unnecessary_null_comparison, library_private_types_in_public_api
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -9,10 +8,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 import '../api_service.dart';
-import '../models/employee.dart';
 import '../constants.dart';
 import 'package:open_file/open_file.dart';
 import 'package:art_sweetalert/art_sweetalert.dart';
+import 'package:flutter/foundation.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String token;
@@ -25,7 +24,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late ApiService apiService;
-  Employee? employee;
+  Map<String, dynamic>? profileData;
 
   @override
   void initState() {
@@ -37,10 +36,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchProfile() async {
     final fetchedData = await apiService.fetchEmployeeProfile(widget.token);
     setState(() {
-      employee = fetchedData != null ? Employee.fromJson(fetchedData['employee']) : null;
+      profileData = fetchedData;
     });
   }
-
 
   void _showWebViewPopup(String url) {
     double loadingProgress = 0.0;
@@ -269,7 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        body: employee == null
+        body: profileData == null
             ? const Center(child: CircularProgressIndicator())
             : Padding(
           padding: const EdgeInsets.all(16.0),
@@ -278,15 +276,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Center(
                 child: CircleAvatar(
                   radius: 80,
-                  backgroundImage: employee!.photo != null
-                      ? NetworkImage('${Constants.baseUrl}/${employee!.photo}')
+                  backgroundImage: profileData!['employee']['photo'] != null
+                      ? NetworkImage('${Constants.baseUrl}/${profileData!['employee']['photo']}')
                       : const AssetImage('assets/default_profile.png') as ImageProvider,
                 ),
               ),
               const SizedBox(height: 16.0),
               buildSectionHeader("Profile Details"),
               buildProfileTable(),
-              if (employee!.documents != null) ...[
+              if (profileData!['employee']['documents'] != null) ...[
                 buildSectionHeader("Documents"),
                 buildDocumentsTable(),
               ],
@@ -315,27 +313,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
       border: TableBorder.all(color: Colors.grey.shade300),
       children: [
-        buildTableRow('Employee ID', employee!.employeeId),
-        buildTableRow('Full Name', employee!.fullName),
-        buildTableRow('Email', employee!.email),
-        buildTableRow('Phone', employee!.phone),
-        buildTableRow('PAN Number', employee!.panNumber),
-        buildTableRow('Bank Name', employee!.bankName),
-        buildTableRow('Account Number', employee!.bankAccountNumber),
-        buildTableRow('IFSC Code', employee!.ifscCode),
-        buildTableRow('Joining Date', employee!.doj),
-        buildTableRow('Date of Birth', employee!.dob),
-        buildTableRow('Blood Group', employee!.bloodGroup),
-        buildTableRow('Gross Salary', employee!.grossSalary.toString()),
-        buildTableRow('PF Number', employee!.pf),
-        buildTableRow('Shift Type', employee!.shiftType),
-        buildTableRow('Aadhar', employee!.aadhar),
-        buildTableRow('Last Education', employee!.lastEducation),
-        buildTableRow('Degree', employee!.degree),
-        buildTableRow('College', employee!.college),
-        buildTableRow('Completion Year', employee!.completionYear.toString()),
-        buildTableRow('Address', employee!.address),
-        buildTableRow('Emergency Contact', employee!.emergencyContact),
+        buildTableRow('Employee ID', profileData!['employee']['employee_id'] ?? 'N/A'),
+        buildTableRow('Full Name', profileData!['employee']['full_name'] ?? 'N/A'),
+        buildTableRow('Email', profileData!['employee']['email'] ?? 'N/A'),
+        buildTableRow('Phone', profileData!['employee']['phone'] ?? 'N/A'),
+        buildTableRow('PAN Number', profileData!['employee']['pan_number'] ?? 'N/A'),
+        buildTableRow('Bank Name', profileData!['employee']['bank_name'] ?? 'N/A'),
+        buildTableRow('Account Number', profileData!['employee']['bank_account_number'] ?? 'N/A'),
+        buildTableRow('IFSC Code', profileData!['employee']['ifsc_code'] ?? 'N/A'),
+        buildTableRow('Joining Date', profileData!['employee']['doj'] ?? 'N/A'),
+        buildTableRow('Date of Birth', profileData!['employee']['dob'] ?? 'N/A'),
+        buildTableRow('Blood Group', profileData!['employee']['bloodgroup'] ?? 'N/A'),
+        buildTableRow('Gross Salary', profileData!['employee']['gross_salary']?.toString() ?? 'N/A'),
+        buildTableRow('PF Number', profileData!['employee']['pf'] ?? 'N/A'),
+        buildTableRow('Shift Type', profileData!['employee']['shift_type'] ?? 'N/A'),
+        buildTableRow('Aadhar', profileData!['employee']['aadhar'] ?? 'N/A'),
+        buildTableRow('Last Education', profileData!['employee']['last_education'] ?? 'N/A'),
+        buildTableRow('Degree', profileData!['employee']['degree'] ?? 'N/A'),
+        buildTableRow('College', profileData!['employee']['college'] ?? 'N/A'),
+        buildTableRow('Completion Year', profileData!['employee']['completion_year']?.toString() ?? 'N/A'),
+        buildTableRow('Address', profileData!['employee']['address'] ?? 'N/A'),
+        buildTableRow('Emergency Contact', profileData!['employee']['emergency_contact'] ?? 'N/A'),
       ],
     );
   }
@@ -411,16 +409,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
       border: TableBorder.all(color: Colors.grey.shade300),
       children: [
-        buildClickableTableRow('Resume', employee!.documents!.resume),
-        buildClickableTableRow('ID Proof', employee!.documents!.idProof),
-        buildClickableTableRow('Address Proof', employee!.documents!.addressProof),
-        buildClickableTableRow('PAN Card', employee!.documents!.panCard),
-        buildClickableTableRow('Offer Letter', employee!.documents!.offerLetter),
-        buildClickableTableRow('Educational Certificate', employee!.documents!.educationalCertificate),
+        buildClickableTableRow('Resume', profileData!['employee']['documents']['resume']),
+        buildClickableTableRow('ID Proof', profileData!['employee']['documents']['id_proof']),
+        buildClickableTableRow('Address Proof', profileData!['employee']['documents']['address_proof']),
+        buildClickableTableRow('PAN Card', profileData!['employee']['documents']['pan_card']),
+        buildClickableTableRow('Offer Letter', profileData!['employee']['documents']['offer_letter']),
+        buildClickableTableRow('Educational Certificate', profileData!['employee']['documents']['educational_certificate']),
       ],
     );
   }
-
 
   TableRow buildTableRow(String title, String value) {
     return TableRow(

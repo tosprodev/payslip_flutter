@@ -82,9 +82,9 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'Settings',
               style: TextStyle(
@@ -114,7 +114,8 @@ class SettingsScreen extends StatelessWidget {
       elevation: 8,
       child: ListTile(
         leading: Icon(icon, color: Colors.blueAccent),
-        title: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text(title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 14)),
         trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
         onTap: onTap,

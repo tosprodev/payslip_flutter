@@ -1,28 +1,45 @@
-// ignore_for_file: unused_local_variable, use_build_context_synchronously, deprecated_member_use
+// ignore_for_file: unused_local_variable, use_build_context_synchronously, deprecated_member_use, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:art_sweetalert/art_sweetalert.dart';
-import '../services/payslip_service.dart';
-import '../models/payslip.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../constants.dart';
 
 class PayslipScreen extends StatelessWidget {
   final String token;
 
   const PayslipScreen({super.key, required this.token});
 
+  Future<List<Map<String, dynamic>>> fetchPayslips(String token) async {
+    const String apiUrl = "${Constants.baseUrl}/api/payslips";
+
+    try {
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body)['payslips'];
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        throw Exception('Failed to load payslips: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final PayslipService payslipService = PayslipService();
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Payslips'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: FutureBuilder<List<Payslip>>(
-        future: payslipService.fetchPayslips(token),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: fetchPayslips(token),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -57,131 +74,188 @@ class PayslipScreen extends StatelessWidget {
   }
 }
 
-class PayslipCard extends StatelessWidget {
-  final Payslip payslip;
+class PayslipCard extends StatefulWidget {
+  final Map<String, dynamic> payslip;
   final String token;
 
   const PayslipCard({super.key, required this.payslip, required this.token});
 
   @override
-  Widget build(BuildContext context) {
-    // Format the date as "July 2024"
-    int month = int.parse(payslip.payslipMonth.toString());
-    int year = int.parse(payslip.payslipYear.toString());
-    final String formattedDate = DateFormat('MMMM yyyy').format(DateTime(year, month));
+  _PayslipCardState createState() => _PayslipCardState();
+}
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 8,
+class _PayslipCardState extends State<PayslipCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    int month = int.parse(widget.payslip['payslip_month']);
+    int year = int.parse(widget.payslip['payslip_year']);
+    final String formattedDate =
+        DateFormat('MMMM yyyy').format(DateTime(year, month));
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
       margin: const EdgeInsets.symmetric(vertical: 10),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade50, Colors.pink.shade50],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade50, Colors.pink.shade50],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.all(10),
-          expandedCrossAxisAlignment: CrossAxisAlignment.start,
-          title: Text(
-            '# $formattedDate',  // Displaying Month and Year like "July 2024"
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 5,
+            blurRadius: 7,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: ListTile(
+              title: Text(
+                '# $formattedDate',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Material(
+                    shape: const CircleBorder(),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.blue.shade200, Colors.pink.shade200],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      width: 28,
+                      height: 28,
+                      child: IconButton(
+                        icon: const Icon(Icons.download, color: Colors.white),
+                        onPressed: () {
+                          _downloadPayslip(widget.payslip['hashedId']);
+                        },
+                        iconSize: 14,
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(
+                          minWidth: 24,
+                          minHeight: 24,
+                        ),
+                        splashRadius: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Material(
+                    shape: const CircleBorder(),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromARGB(255, 235, 188, 240),
+                            Color.fromARGB(255, 129, 205, 246)
+                          ], // Different gradient color
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      width: 28,
+                      height: 28,
+                      child: IconButton(
+                        icon: Icon(
+                            _isExpanded ? Icons.expand_less : Icons.expand_more,
+                            color: Colors.white),
+                        onPressed: () {
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                          });
+                        },
+                        iconSize: 14,
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(
+                          minWidth: 24,
+                          minHeight: 24,
+                        ),
+                        splashRadius: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          children: [
+          if (_isExpanded)
             Padding(
               padding: const EdgeInsets.all(15.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildTable([
-                    ['Employee Name', payslip.employee.fullName],
-                    ['Designation', payslip.employee.designation],
-                    ['Work Days', payslip.workDays.toString()],
-                    ['Paid Days', payslip.paidDays.toString()],
-                    ['Late Days', payslip.lateDays.toString()],
-                    ['LOP Days', payslip.lopDays.toString()],
-                    ['Leave Days Taken', payslip.leaveDaysTaken.toString()],
-                    ['In-Hand Salary', '₹${payslip.grossSalary}'],
-                    ['LOP Amount', '₹${payslip.canteen}'],
-                    ['This Month Salary', '₹${payslip.inhandSalary}'],
+                    [
+                      'Employee Name',
+                      widget.payslip['employee']['full_name'] ?? 'N/A'
+                    ],
+                    [
+                      'Designation',
+                      widget.payslip['employee']['designation'] ?? 'N/A'
+                    ],
+                    ['Work Days', widget.payslip['work_days'].toString()],
+                    ['Paid Days', widget.payslip['paid_days'].toString()],
+                    ['Late Days', widget.payslip['late_days'].toString()],
+                    ['LOP Days', widget.payslip['lop_days'].toString()],
+                    [
+                      'Leave Days Taken',
+                      widget.payslip['leave_days_taken'].toString()
+                    ],
+                    ['In-Hand Salary', '₹${widget.payslip['gross_salary']}'],
+                    ['LOP Amount', '₹${widget.payslip['canteen']}'],
+                    [
+                      'This Month Salary',
+                      '₹${widget.payslip['inhand_salary']}'
+                    ],
                   ]),
                   const SizedBox(height: 10),
-                  Center( // Centering the Download button
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _downloadPayslip(payslip.hashedId, context); // Call your download method here
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color set to white
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text('Download Now'),
-                    ),
-                  ),
                 ],
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
-  Future<void> _downloadPayslip(String hashedId, BuildContext context) async {
-    try {
-      final savePath = await _getSavePath(); // Get the path where to save the file
-      final payslipService = PayslipService();
-
-      // Show loading dialog
-      showDialog(
-        context: context,
-        builder: (BuildContext context) => const AlertDialog(
-          title: Text("Downloading..."),
-          content: LinearProgressIndicator(),
-        ),
-      );
-
-      // Download payslip with progress
-      await payslipService.downloadPayslip(hashedId, token, context);
-
-      // Dismiss the loading dialog
-      Navigator.of(context).pop();
-
-      // Show success SweetAlert (moved to downloadPayslip)
-
-    } catch (e) {
-      // Dismiss the loading dialog
-      Navigator.of(context).pop();
-
-      // Show error SweetAlert
-      ArtSweetAlert.show(
-        context: context, // Make sure you have access to the context
-        artDialogArgs: ArtDialogArgs(
-          type: ArtSweetAlertType.danger,
-          title: "Download Failed!",
-          text: "An error occurred while downloading your payslip. Please try again.", // Optional text
-        ),
-      );
+  void _downloadPayslip(String hashedId) async {
+    const String apiUrl = '${Constants.baseUrl}/api/payslips/download';
+    final url = '$apiUrl/$hashedId';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
     }
-  }
-
-  Future<String> _getSavePath() async {
-    final directory = await getExternalStorageDirectory();
-    final savePath = '${directory!.path}/payslip_${payslip.hashedId}.pdf';
-    return savePath;
   }
 
   Widget _buildTable(List<List<String>> data) {
     return Table(
-      columnWidths: const {0: FractionColumnWidth(0.4), 1: FractionColumnWidth(0.6)},
+      columnWidths: const {
+        0: FractionColumnWidth(0.4),
+        1: FractionColumnWidth(0.6)
+      },
       border: TableBorder.all(color: Colors.black.withOpacity(0.2)),
       children: data.map((row) {
         return TableRow(
@@ -198,7 +272,7 @@ class PayslipCard extends StatelessWidget {
 }
 
 class PayslipDetailScreen extends StatelessWidget {
-  final Payslip payslip;
+  final Map<String, dynamic> payslip;
 
   const PayslipDetailScreen({super.key, required this.payslip});
 
@@ -206,7 +280,8 @@ class PayslipDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Details for ${payslip.payslipMonth}/${payslip.payslipYear}'),
+        title: Text(
+            'Details for ${payslip['payslip_month']}/${payslip['payslip_year']}'),
         backgroundColor: Colors.lightBlue,
       ),
       body: Padding(
@@ -214,14 +289,14 @@ class PayslipDetailScreen extends StatelessWidget {
         child: ListView(
           children: [
             _buildTable([
-              ['Company', payslip.company.name],
-              ['Pay Date', payslip.payDate],
-              ['Gross Salary', '₹${payslip.grossSalary}'],
-              ['Basic', '₹${payslip.basic}'],
-              ['HRA', '₹${payslip.hra}'],
-              ['Special Allowance', '₹${payslip.special}'],
-              ['EPF Contribution', '₹${payslip.epf}'],
-              ['CTC', '₹${payslip.ctc}'],
+              ['Company', payslip['company']['name'] ?? 'N/A'],
+              ['Pay Date', payslip['pay_date'] ?? 'N/A'],
+              ['Gross Salary', '₹${payslip['gross_salary']}'],
+              ['Basic', '₹${payslip['basic']}'],
+              ['HRA', '₹${payslip['hra']}'],
+              ['Special Allowance', '₹${payslip['special']}'],
+              ['EPF Contribution', '₹${payslip['epf']}'],
+              ['CTC', '₹${payslip['ctc']}'],
             ]),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -244,7 +319,10 @@ class PayslipDetailScreen extends StatelessWidget {
 
   Widget _buildTable(List<List<String>> data) {
     return Table(
-      columnWidths: const {0: FractionColumnWidth(0.4), 1: FractionColumnWidth(0.6)},
+      columnWidths: const {
+        0: FractionColumnWidth(0.4),
+        1: FractionColumnWidth(0.6)
+      },
       border: TableBorder.all(color: Colors.black.withOpacity(0.2)),
       children: data.map((row) {
         return TableRow(

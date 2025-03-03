@@ -41,7 +41,7 @@ dependencies:
   change_app_package_name: ^1.4.0
   provider: ^6.1.2
   flutter_lints: 4.0.0
-  url_launcher: ^6.0.9
+  url_launcher: ^6.0.20
   intl: ^0.19.0
   flutter_html: ^3.0.0-alpha.3
   html_editor_plus: ^0.0.5
@@ -117,6 +117,10 @@ flutter:
     - assets/icons/logout.png
     - assets/icons/edit.png
     - assets/icons/delete.png
+    - assets/icons/appointments.png
+    - assets/icons/leads.png
+    - assets/icons/tasks.png
+    - assets/icons/clients.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

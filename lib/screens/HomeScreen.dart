@@ -1,4 +1,4 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, unnecessary_import
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildBackground() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.white, Colors.lightBlueAccent],
           begin: Alignment.topCenter,
@@ -42,9 +42,9 @@ class HomeScreen extends StatelessWidget {
         children: [
           Container(
             height: 200,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.blueAccent,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(50),
                 bottomRight: Radius.circular(50),
               ),

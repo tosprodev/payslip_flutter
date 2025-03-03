@@ -215,7 +215,7 @@ class ApiService {
     }
   }
 
-  //Get Settings
+  // Get Settings
   Future<Map<String, dynamic>?> fetchAppSettings() async {
     try {
       final response = await http.get(
@@ -233,4 +233,55 @@ class ApiService {
     }
   }
 
+  // Fetch User Role
+  static Future<Map<String, dynamic>?> getUserRole(String token, String baseUrl) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/user-role'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {
+          'status': 'error',
+          'message': 'Failed to fetch user role. Please try again.',
+        };
+      }
+    } catch (e) {
+      return {
+        'status': 'error',
+        'message': 'Failed to fetch user role due to network error. Please try again.',
+      };
+    }
+  }
+
+  // Fetch Appointments
+  static Future<Map<String, dynamic>?> fetchAppointments(String token, String baseUrl) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/appointments'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {
+          'status': 'error',
+          'message': 'Failed to fetch appointments. Please try again.',
+        };
+      }
+    } catch (e) {
+      return {
+        'status': 'error',
+        'message': 'Failed to fetch appointments due to network error. Please try again.',
+      };
+    }
+  }
 }

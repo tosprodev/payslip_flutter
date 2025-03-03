@@ -26,7 +26,7 @@ class AttendanceScreen extends StatelessWidget {
 
   Widget _buildBackground() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.blueAccent, Colors.lightBlueAccent],
           begin: Alignment.topCenter,
@@ -37,14 +37,14 @@ class AttendanceScreen extends StatelessWidget {
         children: [
           Container(
             height: 200,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.blueAccent,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(50),
                 bottomRight: Radius.circular(50),
               ),
             ),
-            child: Center(
+            child: const Center(
               child: Text(
                 'Attendance',
                 style: TextStyle(
